@@ -422,11 +422,12 @@ export default function App() {
   };
 
   const handleAddPost = async () => {
-    if (!title || !date || !text || imageFiles.length === 0) {
-      setError("Please fill everything.");
-      return;
-    }
+    console.log("save clicked");
 
+  if (!title || !date || !text) {
+    setError("Please fill everything.");
+    return;
+  }
     const { data, error } = await supabase
       .from("posts")
       .insert([
@@ -438,6 +439,8 @@ export default function App() {
         },
       ])
       .select();
+
+    console.log("supabase result", data, error);
 
     if (error) {
       console.error("Failed to save post:", error);
