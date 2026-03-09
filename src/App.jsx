@@ -13,6 +13,7 @@ import {
   BookOpen,
   Sparkles,
 } from "lucide-react";
+import { supabase } from "./supabase";
 
 const PASSWORD_KEY = "between_us_password";
 const POSTS_KEY = "between_us_posts";
@@ -316,6 +317,29 @@ export default function App() {
   const sortedPosts = useMemo(() => {
     return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [posts]);
+
+  useEffect(() => {
+  async function loadPosts() {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    const formatted = (data || []).map((post) => ({
+      ...post,
+      images: post.images || [],
+    }));
+
+    setPosts(formatted);
+  }
+
+  loadPosts();
+}, []);
 
   const photoLibrary = useMemo(() => {
     return sortedPosts.flatMap((post) =>
