@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
   Lock,
@@ -11,33 +10,21 @@ import {
   ChevronRight,
   X,
   ZoomIn,
-  Sparkles,
 } from "lucide-react";
 
-const PASSWORD_KEY = "couple_journal_password";
-const POSTS_KEY = "couple_journal_posts";
-const SESSION_KEY = "couple_journal_session";
+const PASSWORD_KEY = "between_us_password";
+const POSTS_KEY = "between_us_posts";
+const SESSION_KEY = "between_us_session";
 
 const samplePosts = [
   {
     id: 1,
-    title: "Spring Light",
+    title: "Soft Afternoon",
     date: "2026-03-09",
-    text: "The sunlight felt warm, everything looked soft, and this was one of those days I never want to forget.",
+    text: "The light felt gentle, and everything about the day was quiet in the best way.",
     images: [
       "https://images.unsplash.com/photo-1516589091380-5d8e87df6999?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=1200&q=80",
-    ],
-  },
-  {
-    id: 2,
-    title: "Quiet Afternoon",
-    date: "2026-02-20",
-    text: "Nothing big happened, but the small moments felt beautiful enough to keep forever.",
-    images: [
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     ],
   },
 ];
@@ -58,14 +45,16 @@ function formatDate(dateString) {
 function normalizeLegacyPosts(posts) {
   return posts.map((post) => ({
     ...post,
-    images: post.images || (post.image ? [post.image] : []),
+    images: Array.isArray(post.images)
+      ? post.images
+      : post.image
+      ? [post.image]
+      : [],
   }));
 }
 
 function ImageSlider({ images, title, onOpenGallery }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [touchStartX, setTouchStartX] = useState(null);
-  const [touchEndX, setTouchEndX] = useState(null);
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -75,52 +64,34 @@ function ImageSlider({ images, title, onOpenGallery }) {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
-  const onTouchStart = (e) => setTouchStartX(e.targetTouches[0].clientX);
-  const onTouchMove = (e) => setTouchEndX(e.targetTouches[0].clientX);
-  const onTouchEnd = () => {
-    if (touchStartX === null || touchEndX === null) return;
-    const distance = touchStartX - touchEndX;
-    if (distance > 50) nextSlide();
-    if (distance < -50) prevSlide();
-    setTouchStartX(null);
-    setTouchEndX(null);
-  };
-
   return (
     <div style={sliderWrapStyle}>
-      <div
-        style={{ position: "relative", height: "100%", width: "100%" }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={images[currentIndex]}
-            src={images[currentIndex]}
-            alt={`${title} ${currentIndex + 1}`}
-            initial={{ opacity: 0.2, scale: 1.03 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0.2, scale: 0.98 }}
-            transition={{ duration: 0.35 }}
-            style={sliderImageStyle}
-            onClick={() => onOpenGallery(currentIndex)}
-          />
-        </AnimatePresence>
-        <div style={imageOverlayStyle} />
-      </div>
+      {images.length > 0 && (
+        <img
+          src={images[currentIndex]}
+          alt={`${title} ${currentIndex + 1}`}
+          style={sliderImageStyle}
+          onClick={() => onOpenGallery(images, currentIndex, title)}
+        />
+      )}
 
       <div style={floatingBadgeRowStyle}>
-        <div style={badgeStyle}><ImageIcon size={14} style={{ marginRight: 6 }} /> {images.length} Photos</div>
-        <div style={badgeStyle}><ZoomIn size={14} style={{ marginRight: 6 }} /> Open Gallery</div>
+        <div style={badgeStyle}>
+          <ImageIcon size={14} style={{ marginRight: 6 }} />
+          {images.length} Photos
+        </div>
+        <div style={badgeStyle}>
+          <ZoomIn size={14} style={{ marginRight: 6 }} />
+          Open Gallery
+        </div>
       </div>
 
       {images.length > 1 && (
         <>
-          <button onClick={prevSlide} style={{ ...navBtnStyle, left: 18 }}>
+          <button onClick={prevSlide} style={{ ...navBtnStyle, left: 18 }} type="button">
             <ChevronLeft size={20} />
           </button>
-          <button onClick={nextSlide} style={{ ...navBtnStyle, right: 18 }}>
+          <button onClick={nextSlide} style={{ ...navBtnStyle, right: 18 }} type="button">
             <ChevronRight size={20} />
           </button>
 
@@ -128,22 +99,25 @@ function ImageSlider({ images, title, onOpenGallery }) {
             {images.map((_, index) => (
               <button
                 key={index}
+                type="button"
                 onClick={() => setCurrentIndex(index)}
                 style={{
                   width: 10,
                   height: 10,
                   borderRadius: 999,
                   border: "none",
-                  background: index === currentIndex ? "#fff" : "rgba(255,255,255,0.45)",
+                  background: index === currentIndex ? "#ffffff" : "rgba(255,255,255,0.45)",
                   cursor: "pointer",
                 }}
               />
             ))}
           </div>
+
+          <div style={countStyle}>
+            {currentIndex + 1} / {images.length}
+          </div>
         </>
       )}
-
-      {images.length > 1 && <div style={countStyle}>{currentIndex + 1} / {images.length}</div>}
     </div>
   );
 }
@@ -170,30 +144,47 @@ function GalleryModal({ images, initialIndex, title, onClose }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [images.length, onClose]);
 
-  const prev = () => setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  const next = () => setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  const prev = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+  };
+
+  const next = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === images.length - 1 ? 0 : prevIndex + 1
+    );
+  };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={modalOverlayStyle}>
-      <button onClick={onClose} style={{ ...circleBtnStyle, top: 20, right: 20, position: "absolute" }}>
+    <div style={modalOverlayStyle}>
+      <button onClick={onClose} style={{ ...circleBtnStyle, top: 20, right: 20, position: "absolute" }} type="button">
         <X size={20} />
       </button>
 
       {images.length > 1 && (
-        <button onClick={prev} style={{ ...circleBtnStyle, left: 20, top: "50%", position: "absolute", transform: "translateY(-50%)" }}>
+        <button
+          onClick={prev}
+          style={{ ...circleBtnStyle, left: 20, top: "50%", position: "absolute", transform: "translateY(-50%)" }}
+          type="button"
+        >
           <ChevronLeft size={24} />
         </button>
       )}
 
-      <div style={{ margin: "0 auto", display: "flex", maxHeight: "92vh", width: "100%", maxWidth: 1150, flexDirection: "column", gap: 16 }}>
+      <div style={galleryCenterStyle}>
         <div style={galleryMainImageWrapStyle}>
-          <img src={images[currentIndex]} alt={`${title} ${currentIndex + 1}`} style={{ maxHeight: "72vh", width: "100%", objectFit: "contain" }} />
+          <img
+            src={images[currentIndex]}
+            alt={`${title} ${currentIndex + 1}`}
+            style={galleryMainImageStyle}
+          />
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-          <div style={{ color: "#fff" }}>
-            <p style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{title}</p>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", margin: "4px 0 0" }}>
+        <div style={galleryBottomRowStyle}>
+          <div style={{ color: "#ffffff" }}>
+            <p style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{title}</p>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", margin: "4px 0 0" }}>
               {currentIndex + 1} / {images.length}
             </p>
           </div>
@@ -202,6 +193,7 @@ function GalleryModal({ images, initialIndex, title, onClose }) {
             {images.map((img, index) => (
               <button
                 key={index}
+                type="button"
                 onClick={() => setCurrentIndex(index)}
                 style={{
                   flexShrink: 0,
@@ -213,7 +205,7 @@ function GalleryModal({ images, initialIndex, title, onClose }) {
                   cursor: "pointer",
                 }}
               >
-                <img src={img} alt={`thumb-${index}`} style={{ height: 68, width: 68, objectFit: "cover" }} />
+                <img src={img} alt={`thumb-${index}`} style={thumbStyle} />
               </button>
             ))}
           </div>
@@ -221,11 +213,15 @@ function GalleryModal({ images, initialIndex, title, onClose }) {
       </div>
 
       {images.length > 1 && (
-        <button onClick={next} style={{ ...circleBtnStyle, right: 20, top: "50%", position: "absolute", transform: "translateY(-50%)" }}>
+        <button
+          onClick={next}
+          style={{ ...circleBtnStyle, right: 20, top: "50%", position: "absolute", transform: "translateY(-50%)" }}
+          type="button"
+        >
           <ChevronRight size={24} />
         </button>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -233,16 +229,19 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [loginInput, setLoginInput] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
+
   const [posts, setPosts] = useState([]);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [text, setText] = useState("");
   const [imageFiles, setImageFiles] = useState([]);
   const [error, setError] = useState("");
+
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [galleryTitle, setGalleryTitle] = useState("");
+
   const [activeTab, setActiveTab] = useState("write");
 
   useEffect(() => {
@@ -254,7 +253,11 @@ export default function App() {
     setLoggedIn(session);
 
     if (savedPosts) {
-      setPosts(normalizeLegacyPosts(JSON.parse(savedPosts)));
+      try {
+        setPosts(normalizeLegacyPosts(JSON.parse(savedPosts)));
+      } catch {
+        setPosts(samplePosts);
+      }
     } else {
       setPosts(samplePosts);
       localStorage.setItem(POSTS_KEY, JSON.stringify(samplePosts));
@@ -262,24 +265,22 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (posts.length) {
-      localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-    }
+    localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
   }, [posts]);
 
   const sortedPosts = useMemo(() => {
     return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [posts]);
 
-  const recentPhotos = useMemo(() => {
+  const photoLibrary = useMemo(() => {
     return sortedPosts.flatMap((post) =>
       post.images.map((img, index) => ({
         image: img,
         title: post.title,
         date: post.date,
-        postId: post.id,
-        imageIndex: index,
         images: post.images,
+        imageIndex: index,
+        postId: post.id,
       }))
     );
   }, [sortedPosts]);
@@ -338,7 +339,7 @@ export default function App() {
     setText("");
     setImageFiles([]);
     setError("");
-    setActiveTab("memories");
+    setActiveTab("photos");
   };
 
   const handleDelete = (id) => {
@@ -359,12 +360,79 @@ export default function App() {
     }
   };
 
-  const openGallery = (images, index, title) => {
+  const openGallery = (images, index, titleText) => {
     setGalleryImages(images);
     setGalleryIndex(index);
-    setGalleryTitle(title);
+    setGalleryTitle(titleText);
     setGalleryOpen(true);
   };
+
+  if (!loggedIn) {
+    return (
+      <div style={pageStyle}>
+        <div style={ambientGlowOneStyle} />
+        <div style={ambientGlowTwoStyle} />
+
+        <div style={containerStyle}>
+          <div style={loginWrapStyle}>
+            <div>
+              <div style={topBadgeStyle}>Private Memory Archive</div>
+
+              <div style={{ marginTop: 18 }}>
+                <h1 style={heroTitleStyle}>Between Us</h1>
+                <p style={heroDescStyle}>
+                  A place to keep even the smallest moments.
+                </p>
+              </div>
+
+              <div style={featureGridStyle}>
+                <div style={featureCardStyle}>
+                  <Heart size={20} style={{ marginBottom: 8 }} />
+                  <p style={featureTextStyle}>Meaningful Memories</p>
+                </div>
+                <div style={featureCardStyle}>
+                  <Lock size={20} style={{ marginBottom: 8 }} />
+                  <p style={featureTextStyle}>Private Access</p>
+                </div>
+                <div style={featureCardStyle}>
+                  <ImageIcon size={20} style={{ marginBottom: 8 }} />
+                  <p style={featureTextStyle}>Photo Journal</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={loginCardStyle}>
+              <div style={{ textAlign: "center", marginBottom: 20 }}>
+                <div style={lockCircleStyle}>
+                  <Lock size={24} />
+                </div>
+                <h2 style={loginTitleStyle}>Login</h2>
+                <p style={loginSubStyle}>Enter your private space.</p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <input
+                  type="password"
+                  placeholder="Enter password"
+                  value={loginInput}
+                  onChange={(e) => setLoginInput(e.target.value)}
+                  style={inputStyle}
+                />
+                <button onClick={handleLogin} style={primaryBtnStyle} type="button">
+                  Enter
+                </button>
+                {error && <p style={errorTextStyle}>{error}</p>}
+              </div>
+
+              <div style={hintBoxStyle}>
+                Default password: <strong>ourmemory</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={pageStyle}>
@@ -372,379 +440,224 @@ export default function App() {
       <div style={ambientGlowTwoStyle} />
 
       <div style={containerStyle}>
-        {!loggedIn ? (
-          <div style={loginWrapStyle}>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <div style={topBadgeStyle}>Private Memory Archive</div>
-              <div style={{ marginTop: 18 }}>
-                <h1 style={heroTitleStyle}>
-                  Our Little
-                  <span style={gradientTextStyle}>Love Journal</span>
-                </h1>
-                <p style={heroDescStyle}>
-                  A soft private space for your favorite photos, stories, and small moments you want to keep forever.
-                </p>
-              </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+          <div style={headerCardStyle}>
+            <div>
+              <p style={headerMiniStyle}>PRIVATE JOURNAL</p>
+              <h1 style={headerTitleStyle}>Between Us</h1>
+              <p style={headerDescStyle}>
+                A place to keep even the smallest moments.
+              </p>
+            </div>
 
-              <div style={featureGridStyle}>
-                <div style={featureCardStyle}><Heart size={20} style={{ marginBottom: 8 }} /><p style={featureTextStyle}>Meaningful Memories</p></div>
-                <div style={featureCardStyle}><Lock size={20} style={{ marginBottom: 8 }} /><p style={featureTextStyle}>Private Access</p></div>
-                <div style={featureCardStyle}><Sparkles size={20} style={{ marginBottom: 8 }} /><p style={featureTextStyle}>Soft Gallery</p></div>
-              </div>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.1 }}>
-              <div style={loginCardStyle}>
-                <div style={{ textAlign: "center", marginBottom: 20 }}>
-                  <div style={lockCircleStyle}><Lock size={24} /></div>
-                  <h2 style={{ fontSize: 28, margin: "10px 0 6px", color: "#35293a" }}>Login</h2>
-                  <p style={{ color: "#7a6872", fontSize: 14 }}>Enter your private space.</p>
-                </div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <input
-                    type="password"
-                    placeholder="Enter password"
-                    value={loginInput}
-                    onChange={(e) => setLoginInput(e.target.value)}
-                    style={inputStyle}
-                  />
-                  <button onClick={handleLogin} style={primaryBtnStyle}>Enter</button>
-                  {error && <p style={{ fontSize: 14, color: "#4f6fad", margin: 0 }}>{error}</p>}
-                </div>
-
-                <div style={hintBoxStyle}>
-                  Default password: <strong>ourmemory</strong>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={headerCardStyle}>
-              <div>
-                <p style={headerMiniStyle}>PRIVATE JOURNAL</p>
-                <h1 style={headerTitleStyle}>Our Lovely Archive</h1>
-                <p style={headerDescStyle}>A quiet place for memories worth keeping.</p>
-              </div>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <button onClick={handleSetPassword} style={secondaryBtnStyle}>Change Password</button>
-                <button onClick={handleLogout} style={logoutBtnStyle}>Log Out</button>
-              </div>
-            </motion.div>
-
-            <div style={mainGridStyle}>
-              <div>
-                <div style={formCardStyle}>
-                  <div style={sectionHeaderRowStyle}>
-                    <div>
-                      <p style={{ margin: "0 0 6px", color: "#5e7398", fontSize: 14 }}>New Entry</p>
-                      <h2 style={{ margin: 0, fontSize: 34, color: "#2f3e5c" }}>Add a Memory</h2>
-                    </div>
-                    <div style={tabSwitchStyle}>
-                      <button onClick={() => setActiveTab("write")} style={activeTab === "write" ? activeTabBtnActiveStyle : activeTabBtnStyle}>Write</button>
-                      <button onClick={() => setActiveTab("photos")} style={activeTab === "photos" ? activeTabBtnActiveStyle : activeTabBtnStyle}>Photos</button>
-                    </div>
-                  </div>
-
-                  {activeTab === "write" ? (
-                    <>
-                      <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
-                      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
-
-                      <div style={uploadWrapStyle}>
-                        <label style={uploadLabelStyle}>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleImageUpload}
-                            style={{ display: "none" }}
-                          />
-                          Choose Photos
-                        </label>
-                        <div style={uploadHintStyle}>Upload one or more photos from your device.</div>
-                        {imageFiles.length > 0 && (
-                          <div style={previewGridStyle}>
-                            {imageFiles.map((img, index) => (
-                              <img key={index} src={img} alt={`preview-${index}`} style={previewImageStyle} />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <textarea
-                        placeholder="Write about the moment, your feelings, and what made it special"
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        style={{ ...inputStyle, minHeight: 170, resize: "vertical", paddingTop: 14 }}
-                      />
-
-                      <button onClick={handleAddPost} style={primaryBtnStyle}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                          <Plus size={16} /> Save Memory
-                        </span>
-                      </button>
-
-                      {error && <p style={{ fontSize: 14, color: "#4f6fad", margin: 0 }}>{error}</p>}
-
-                      <div style={hintPinkStyle}>
-                        This version is saved in your browser as a prototype.
-                      </div>
-                    </>
-                  ) : (
-                    <div style={photoLibraryStyle}>
-                      <div style={libraryHeaderStyle}>
-                        <h3 style={{ margin: 0, fontSize: 24, color: "#2f3e5c" }}>Photo Library</h3>
-                        <span style={libraryCountStyle}>{recentPhotos.length} photos</span>
-                      </div>
-                      {recentPhotos.length > 0 ? (
-                        <div style={libraryGridStyle}>
-                          {recentPhotos.map((photo, index) => (
-                            <button
-                              key={`${photo.postId}-${photo.imageIndex}-${index}`}
-                              onClick={() => openGallery(photo.images, photo.imageIndex, photo.title)}
-                              style={libraryCardStyle}
-                            >
-                              <img src={photo.image} alt={photo.title} style={libraryImageStyle} />
-                              <div style={libraryMetaStyle}>
-                                <div style={libraryTitleStyle}>{photo.title}</div>
-                                <div style={libraryDateStyle}>{formatDate(photo.date)}</div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={emptyLibraryStyle}>No photos yet. Add a memory to start your gallery.</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
-                <div style={memoriesHeaderStyle}>
-                  <div>
-                    <p style={{ margin: "0 0 6px", color: "#5e7398", fontSize: 14 }}>Your Collection</p>
-                    <h2 style={{ margin: 0, fontSize: 30, color: "#2f3e5c" }}>Saved Memories</h2>
-                  </div>
-                  <button onClick={() => setActiveTab("write")} style={secondaryBtnStyle}>Add New</button>
-                </div>
-                {sortedPosts.map((post, index) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: index * 0.04 }}
-                  >
-                    <div style={postCardStyle}>
-                      <div style={postGridStyle}>
-                        <ImageSlider
-                          images={post.images}
-                          title={post.title}
-                          onOpenGallery={(startIndex) => openGallery(post.images, startIndex, post.title)}
-                        />
-
-                        <div style={postBodyStyle}>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start" }}>
-                              <div>
-                                <h3 style={postTitleStyle}>{post.title}</h3>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, color: "#5c6f8f", fontSize: 14 }}>
-                                  <CalendarDays size={16} />
-                                  <span>{formatDate(post.date)}</span>
-                                </div>
-                              </div>
-                              <button onClick={() => handleDelete(post.id)} style={iconGhostBtnStyle}>
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-
-                            <p style={postTextStyle}>{post.text}</p>
-                          </div>
-
-                          <div style={savedRowStyle}>
-                            <Heart size={16} fill="currentColor" />
-                            <span>Saved in our archive</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <button onClick={handleSetPassword} style={secondaryBtnStyle} type="button">
+                Change Password
+              </button>
+              <button onClick={handleLogout} style={logoutBtnStyle} type="button">
+                Log Out
+              </button>
             </div>
           </div>
-        )}
-      </div>
 
-      {galleryOpen && (
-        <GalleryModal
-          images={galleryImages}
-          initialIndex={galleryIndex}
-          title={galleryTitle}
-          onClose={() => setGalleryOpen(false)}
-        />
-      )}
-    </div>
-  );
-}
+          <div style={mainGridStyle}>
+            <div>
+              <div style={formCardStyle}>
+                <div style={sectionHeaderRowStyle}>
+                  <div>
+                    <p style={smallLabelStyle}>New Entry</p>
+                    <h2 style={sectionTitleStyle}>Add a Memory</h2>
+                  </div>
 
-const sectionHeaderRowStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 12,
-  alignItems: "center",
-  flexWrap: "wrap",
-};
+                  <div style={tabSwitchStyle}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("write")}
+                      style={activeTab === "write" ? activeTabBtnActiveStyle : activeTabBtnStyle}
+                    >
+                      Write
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("photos")}
+                      style={activeTab === "photos" ? activeTabBtnActiveStyle : activeTabBtnStyle}
+                    >
+                      Photos
+                    </button>
+                  </div>
+                </div>
 
-const tabSwitchStyle = {
-  display: "flex",
-  gap: 8,
-  padding: 6,
-  borderRadius: 999,
-  background: "rgba(230, 237, 248, 0.9)",
-};
+                {activeTab === "write" ? (
+                  <>
+                    <input
+                      placeholder="Title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      style={inputStyle}
+                    />
 
-const activeTabBtnStyle = {
-  border: "none",
-  background: "transparent",
-  color: "#6b7f9d",
-  padding: "10px 14px",
-  borderRadius: 999,
-  cursor: "pointer",
-  fontWeight: 600,
-};
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      style={inputStyle}
+                    />
 
-const activeTabBtnActiveStyle = {
-  border: "none",
-  background: "white",
-  color: "#36527f",
-  padding: "10px 14px",
-  borderRadius: 999,
-  cursor: "pointer",
-  fontWeight: 700,
-  boxShadow: "0 6px 16px rgba(79,111,173,0.12)",
-};
+                    <div style={uploadWrapStyle}>
+                      <label style={uploadLabelStyle}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageUpload}
+                          style={{ display: "none" }}
+                        />
+                        Choose Photos
+                      </label>
 
-const photoLibraryStyle = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 14,
-};
+                      <div style={uploadHintStyle}>
+                        Upload one or more photos from your device.
+                      </div>
 
-const libraryHeaderStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: 10,
-};
+                      {imageFiles.length > 0 && (
+                        <div style={previewGridStyle}>
+                          {imageFiles.map((img, index) => (
+                            <img
+                              key={index}
+                              src={img}
+                              alt={`preview-${index}`}
+                              style={previewImageStyle}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
-const libraryCountStyle = {
-  fontSize: 13,
-  color: "#5c6f8f",
-  background: "rgba(230, 237, 248, 0.9)",
-  borderRadius: 999,
-  padding: "8px 12px",
-  fontWeight: 600,
-};
+                    <textarea
+                      placeholder="Write about the moment, your feelings, and what made it special"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      style={textareaStyle}
+                    />
 
-const libraryGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-  gap: 12,
-};
+                    <button onClick={handleAddPost} style={primaryBtnStyle} type="button">
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <Plus size={16} />
+                        Save Memory
+                      </span>
+                    </button>
 
-const libraryCardStyle = {
-  border: "1px solid rgba(219, 230, 245, 0.95)",
-  background: "rgba(255,255,255,0.95)",
-  borderRadius: 18,
-  overflow: "hidden",
-  cursor: "pointer",
-  padding: 0,
-  textAlign: "left",
-  boxShadow: "0 12px 24px rgba(79,111,173,0.08)",
-};
+                    {error && <p style={errorTextStyle}>{error}</p>}
 
-const libraryImageStyle = {
-  width: "100%",
-  aspectRatio: "1 / 1",
-  objectFit: "cover",
-  display: "block",
-};
+                    <div style={hintSoftStyle}>
+                      This version is saved in your browser as a prototype.
+                    </div>
+                  </>
+                ) : (
+                  <div style={photoLibraryStyle}>
+                    <div style={libraryHeaderStyle}>
+                      <h3 style={libraryTitleHeadingStyle}>Photo Library</h3>
+                      <span style={libraryCountStyle}>{photoLibrary.length} photos</span>
+                    </div>
 
-const libraryMetaStyle = {
-  padding: 12,
-};
+                    {photoLibrary.length > 0 ? (
+                      <div style={libraryGridStyle}>
+                        {photoLibrary.map((photo, index) => (
+                          <button
+                            key={`${photo.postId}-${photo.imageIndex}-${index}`}
+                            type="button"
+                            onClick={() =>
+                              openGallery(photo.images, photo.imageIndex, photo.title)
+                            }
+                            style={libraryCardStyle}
+                          >
+                            <img src={photo.image} alt={photo.title} style={libraryImageStyle} />
+                            <div style={libraryMetaStyle}>
+                              <div style={libraryTitleStyle}>{photo.title}</div>
+                              <div style={libraryDateStyle}>{formatDate(photo.date)}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={emptyLibraryStyle}>
+                        No photos yet. Add a memory to start your gallery.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
 
-const libraryTitleStyle = {
-  fontSize: 14,
-  fontWeight: 700,
-  color: "#2f3e5c",
-  marginBottom: 4,
-};
+            <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+              <div style={memoriesHeaderStyle}>
+                <div>
+                  <p style={smallLabelStyle}>Your Collection</p>
+                  <h2 style={memoriesTitleStyle}>Saved Memories</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("write")}
+                  style={secondaryBtnStyle}
+                >
+                  Add New
+                </button>
+              </div>
 
-const libraryDateStyle = {
-  fontSize: 12,
-  color: "#6b7f9d",
-};
+              {sortedPosts.map((post) => (
+                <div key={post.id} style={postCardStyle}>
+                  <div style={postGridStyle}>
+                    <ImageSlider
+                      images={post.images}
+                      title={post.title}
+                      onOpenGallery={openGallery}
+                    />
 
-const emptyLibraryStyle = {
-  borderRadius: 18,
-  padding: 20,
-  background: "rgba(240,245,255,0.95)",
-  color: "#5c6f8f",
-  fontSize: 14,
-  lineHeight: 1.7,
-};
+                    <div style={postBodyStyle}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: 16,
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          <div>
+                            <h3 style={postTitleStyle}>{post.title}</h3>
+                            <div style={postDateRowStyle}>
+                              <CalendarDays size={16} />
+                              <span>{formatDate(post.date)}</span>
+                            </div>
+                          </div>
 
-const uploadWrapStyle = {
-  width: "100%",
-  borderRadius: 18,
-  border: "1px solid #dbe6f5",
-  background: "rgba(255,255,255,0.9)",
-  padding: 14,
-  boxSizing: "border-box",
-};
+                          <button
+                            onClick={() => handleDelete(post.id)}
+                            style={iconGhostBtnStyle}
+                            type="button"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
 
-const uploadLabelStyle = {
-  display: "inline-block",
-  padding: "10px 14px",
-  borderRadius: 14,
-  background: "linear-gradient(135deg, #eef4ff, #dfeafc)",
-  color: "#36527f",
-  fontWeight: 600,
-  cursor: "pointer",
-  marginBottom: 10,
-};
+                        <p style={postTextStyle}>{post.text}</p>
+                      </div>
 
-const uploadHintStyle = {
-  fontSize: 13,
-  color: "#5c6f8f",
-  marginBottom: 12,
-};
+                      <div style={savedRowStyle}>
+                        <Heart size={16} fill="currentColor" />
+                        <span>Saved in our archive</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
 
-const previewGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-  gap: 10,
-};
-
-const previewImageStyle = {
-  width: "100%",
-  aspectRatio: "1 / 1",
-  objectFit: "cover",
-  borderRadius: 14,
-  border: "1px solid rgba(219, 230, 245, 0.95)",
-};
-
-const memoriesHeaderStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: 12,
-  flexWrap: "wrap",
-};
+              {sortedPosts.length === 0 && (
+                <div style={emptyLibraryStyle}>No memories yet. Start with your first entry.</div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {galleryOpen && (
@@ -811,8 +724,8 @@ const topBadgeStyle = {
   display: "inline-block",
   padding: "9px 16px",
   borderRadius: 999,
-  background: "rgba(255,255,255,0.7)",
-  border: "1px solid rgba(255,255,255,0.8)",
+  background: "rgba(255,255,255,0.75)",
+  border: "1px solid rgba(255,255,255,0.9)",
   fontSize: 13,
   letterSpacing: "0.18em",
   color: "#5f6f8a",
@@ -821,26 +734,22 @@ const topBadgeStyle = {
 };
 
 const heroTitleStyle = {
-  fontSize: 78,
+  fontSize: 86,
   lineHeight: 1,
   fontWeight: 700,
   margin: "0 0 18px",
   color: "#2f3e5c",
-};
-
-const gradientTextStyle = {
-  display: "block",
-  background: "linear-gradient(to right, #4f6fad, #6b8fd6, #3b4f80)",
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
+  fontFamily: "Playfair Display, serif",
+  letterSpacing: "0.02em",
 };
 
 const heroDescStyle = {
   maxWidth: 630,
-  fontSize: 18,
+  fontSize: 20,
   lineHeight: 1.9,
   color: "#5d6f8c",
   margin: 0,
+  fontFamily: "Inter, sans-serif",
 };
 
 const featureGridStyle = {
@@ -852,12 +761,12 @@ const featureGridStyle = {
 
 const featureCardStyle = {
   borderRadius: 26,
-  border: "1px solid rgba(255,255,255,0.72)",
-  background: "rgba(255,255,255,0.58)",
-  boxShadow: "0 18px 34px rgba(145, 110, 126, 0.08)",
+  border: "1px solid rgba(255,255,255,0.82)",
+  background: "rgba(255,255,255,0.64)",
+  boxShadow: "0 18px 34px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(16px)",
   padding: 20,
-  color: "#5e4a56",
+  color: "#5c6f8f",
 };
 
 const featureTextStyle = {
@@ -868,9 +777,9 @@ const featureTextStyle = {
 
 const loginCardStyle = {
   borderRadius: 34,
-  border: "1px solid rgba(255,255,255,0.72)",
-  background: "rgba(255,255,255,0.66)",
-  boxShadow: "0 28px 60px rgba(111, 78, 93, 0.10)",
+  border: "1px solid rgba(255,255,255,0.82)",
+  background: "rgba(255,255,255,0.72)",
+  boxShadow: "0 28px 60px rgba(79, 111, 173, 0.10)",
   backdropFilter: "blur(18px)",
   padding: 34,
 };
@@ -879,12 +788,25 @@ const lockCircleStyle = {
   width: 60,
   height: 60,
   borderRadius: 999,
-  background: "linear-gradient(135deg, #fde6ef, #f8ddd8)",
+  background: "linear-gradient(135deg, #eef4ff, #dfeafc)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   margin: "0 auto",
   color: "#4f6fad",
+};
+
+const loginTitleStyle = {
+  fontSize: 28,
+  margin: "10px 0 6px",
+  color: "#2f3e5c",
+  fontFamily: "Playfair Display, serif",
+};
+
+const loginSubStyle = {
+  color: "#5d6f8c",
+  fontSize: 14,
+  margin: 0,
 };
 
 const inputStyle = {
@@ -896,9 +818,17 @@ const inputStyle = {
   outline: "none",
   fontSize: 15,
   boxSizing: "border-box",
-  background: "rgba(255,255,255,0.82)",
+  background: "rgba(255,255,255,0.92)",
   color: "#2c3e57",
   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.65)",
+};
+
+const textareaStyle = {
+  ...inputStyle,
+  minHeight: 170,
+  resize: "vertical",
+  paddingTop: 14,
+  height: "auto",
 };
 
 const primaryBtnStyle = {
@@ -906,20 +836,20 @@ const primaryBtnStyle = {
   width: "100%",
   borderRadius: 18,
   border: "none",
-  background: "linear-gradient(135deg, #3a2a35, #241923)",
+  background: "linear-gradient(135deg, #4f6fad, #3b4f80)",
   color: "white",
   fontSize: 15,
   fontWeight: 600,
   cursor: "pointer",
-  boxShadow: "0 12px 24px rgba(43, 28, 38, 0.18)",
+  boxShadow: "0 12px 24px rgba(79, 111, 173, 0.18)",
 };
 
 const secondaryBtnStyle = {
   height: 50,
   borderRadius: 18,
-  border: "1px solid #e4d3db",
-  background: "rgba(255,255,255,0.82)",
-  color: "#3e2f39",
+  border: "1px solid #dbe6f5",
+  background: "rgba(255,255,255,0.9)",
+  color: "#36527f",
   fontSize: 15,
   fontWeight: 600,
   cursor: "pointer",
@@ -930,7 +860,7 @@ const logoutBtnStyle = {
   height: 50,
   borderRadius: 18,
   border: "none",
-  background: "linear-gradient(135deg, #352731, #221922)",
+  background: "linear-gradient(135deg, #4f6fad, #3b4f80)",
   color: "white",
   fontSize: 15,
   fontWeight: 600,
@@ -938,13 +868,19 @@ const logoutBtnStyle = {
   padding: "0 22px",
 };
 
+const errorTextStyle = {
+  fontSize: 14,
+  color: "#4f6fad",
+  margin: 0,
+};
+
 const hintBoxStyle = {
   borderRadius: 18,
-  background: "rgba(236, 240, 248, 0.9)",
+  background: "rgba(236, 240, 248, 0.95)",
   padding: 16,
   fontSize: 14,
   lineHeight: 1.7,
-  color: "#866b79",
+  color: "#5d6f8c",
   marginTop: 16,
 };
 
@@ -955,10 +891,10 @@ const headerCardStyle = {
   alignItems: "center",
   justifyContent: "space-between",
   borderRadius: 34,
-  border: "1px solid rgba(255,255,255,0.75)",
-  background: "rgba(255,255,255,0.62)",
+  border: "1px solid rgba(255,255,255,0.85)",
+  background: "rgba(255,255,255,0.70)",
   padding: 28,
-  boxShadow: "0 20px 40px rgba(128, 96, 112, 0.08)",
+  boxShadow: "0 20px 40px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
 };
 
@@ -966,20 +902,24 @@ const headerMiniStyle = {
   margin: "0 0 10px",
   fontSize: 12,
   letterSpacing: "0.26em",
-  color: "#a08592",
+  color: "#5e7398",
 };
 
 const headerTitleStyle = {
-  fontSize: 62,
-  margin: "0 0 8px",
+  fontSize: 64,
+  margin: "0 0 10px",
   lineHeight: 1,
-  color: "#2f2430",
+  color: "#2f3e5c",
+  fontFamily: "Playfair Display, serif",
+  letterSpacing: "0.03em",
 };
 
 const headerDescStyle = {
-  color: "#79646f",
+  color: "#6b7f9d",
   margin: 0,
   fontSize: 18,
+  fontFamily: "Inter, sans-serif",
+  letterSpacing: "0.04em",
 };
 
 const mainGridStyle = {
@@ -992,9 +932,9 @@ const formCardStyle = {
   position: "sticky",
   top: 24,
   borderRadius: 34,
-  border: "1px solid rgba(255,255,255,0.75)",
-  background: "rgba(255,255,255,0.66)",
-  boxShadow: "0 20px 40px rgba(128, 96, 112, 0.08)",
+  border: "1px solid rgba(255,255,255,0.85)",
+  background: "rgba(255,255,255,0.74)",
+  boxShadow: "0 20px 40px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
   padding: 26,
   display: "flex",
@@ -1002,11 +942,61 @@ const formCardStyle = {
   gap: 16,
 };
 
+const sectionHeaderRowStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  alignItems: "center",
+  flexWrap: "wrap",
+};
+
+const smallLabelStyle = {
+  margin: "0 0 6px",
+  color: "#5e7398",
+  fontSize: 14,
+};
+
+const sectionTitleStyle = {
+  margin: 0,
+  fontSize: 34,
+  color: "#2f3e5c",
+  fontFamily: "Playfair Display, serif",
+};
+
+const tabSwitchStyle = {
+  display: "flex",
+  gap: 8,
+  padding: 6,
+  borderRadius: 999,
+  background: "rgba(230, 237, 248, 0.9)",
+};
+
+const activeTabBtnStyle = {
+  border: "none",
+  background: "transparent",
+  color: "#6b7f9d",
+  padding: "10px 14px",
+  borderRadius: 999,
+  cursor: "pointer",
+  fontWeight: 600,
+};
+
+const activeTabBtnActiveStyle = {
+  border: "none",
+  background: "white",
+  color: "#36527f",
+  padding: "10px 14px",
+  borderRadius: 999,
+  cursor: "pointer",
+  fontWeight: 700,
+  boxShadow: "0 6px 16px rgba(79,111,173,0.12)",
+};
+
 const uploadWrapStyle = {
   width: "100%",
   borderRadius: 18,
   border: "1px solid #dbe6f5",
-  background: "rgba(255,255,255,0.9)",
+  background: "rgba(255,255,255,0.95)",
   padding: 14,
   boxSizing: "border-box",
 };
@@ -1042,7 +1032,7 @@ const previewImageStyle = {
   border: "1px solid rgba(219, 230, 245, 0.95)",
 };
 
-const hintPinkStyle = {
+const hintSoftStyle = {
   borderRadius: 18,
   background: "linear-gradient(135deg, rgba(232,238,250,0.95), rgba(240,245,255,0.95))",
   padding: 16,
@@ -1051,12 +1041,105 @@ const hintPinkStyle = {
   color: "#5d6f8c",
 };
 
+const photoLibraryStyle = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 14,
+};
+
+const libraryHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 10,
+};
+
+const libraryTitleHeadingStyle = {
+  margin: 0,
+  fontSize: 24,
+  color: "#2f3e5c",
+  fontFamily: "Playfair Display, serif",
+};
+
+const libraryCountStyle = {
+  fontSize: 13,
+  color: "#5c6f8f",
+  background: "rgba(230, 237, 248, 0.9)",
+  borderRadius: 999,
+  padding: "8px 12px",
+  fontWeight: 600,
+};
+
+const libraryGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: 12,
+};
+
+const libraryCardStyle = {
+  border: "1px solid rgba(219, 230, 245, 0.95)",
+  background: "rgba(255,255,255,0.98)",
+  borderRadius: 18,
+  overflow: "hidden",
+  cursor: "pointer",
+  padding: 0,
+  textAlign: "left",
+  boxShadow: "0 12px 24px rgba(79,111,173,0.08)",
+};
+
+const libraryImageStyle = {
+  width: "100%",
+  aspectRatio: "1 / 1",
+  objectFit: "cover",
+  display: "block",
+};
+
+const libraryMetaStyle = {
+  padding: 12,
+};
+
+const libraryTitleStyle = {
+  fontSize: 14,
+  fontWeight: 700,
+  color: "#2f3e5c",
+  marginBottom: 4,
+};
+
+const libraryDateStyle = {
+  fontSize: 12,
+  color: "#6b7f9d",
+};
+
+const emptyLibraryStyle = {
+  borderRadius: 18,
+  padding: 20,
+  background: "rgba(240,245,255,0.95)",
+  color: "#5c6f8f",
+  fontSize: 14,
+  lineHeight: 1.7,
+};
+
+const memoriesHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  flexWrap: "wrap",
+};
+
+const memoriesTitleStyle = {
+  margin: 0,
+  fontSize: 30,
+  color: "#2f3e5c",
+  fontFamily: "Playfair Display, serif",
+};
+
 const postCardStyle = {
   overflow: "hidden",
   borderRadius: 34,
-  border: "1px solid rgba(255,255,255,0.76)",
-  background: "rgba(255,255,255,0.68)",
-  boxShadow: "0 22px 42px rgba(128, 96, 112, 0.08)",
+  border: "1px solid rgba(255,255,255,0.86)",
+  background: "rgba(255,255,255,0.74)",
+  boxShadow: "0 22px 42px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
 };
 
@@ -1070,7 +1153,7 @@ const postBodyStyle = {
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,248,250,0.46))",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.66), rgba(248,251,255,0.56))",
 };
 
 const postTitleStyle = {
@@ -1078,6 +1161,16 @@ const postTitleStyle = {
   margin: 0,
   color: "#2f3e5c",
   lineHeight: 1.2,
+  fontFamily: "Playfair Display, serif",
+};
+
+const postDateRowStyle = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  marginTop: 8,
+  color: "#5c6f8f",
+  fontSize: 14,
 };
 
 const postTextStyle = {
@@ -1092,8 +1185,8 @@ const iconGhostBtnStyle = {
   width: 38,
   height: 38,
   borderRadius: 999,
-  border: "1px solid rgba(223, 204, 213, 0.7)",
-  background: "rgba(255,255,255,0.72)",
+  border: "1px solid rgba(219, 230, 245, 0.95)",
+  background: "rgba(255,255,255,0.88)",
   cursor: "pointer",
   color: "#5c6f8f",
 };
@@ -1115,18 +1208,12 @@ const sliderWrapStyle = {
 };
 
 const sliderImageStyle = {
-  height: "100%",
   width: "100%",
-  cursor: "pointer",
+  height: "100%",
+  minHeight: 360,
   objectFit: "cover",
   display: "block",
-};
-
-const imageOverlayStyle = {
-  position: "absolute",
-  inset: 0,
-  background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.06))",
-  pointerEvents: "none",
+  cursor: "pointer",
 };
 
 const floatingBadgeRowStyle = {
@@ -1141,13 +1228,13 @@ const badgeStyle = {
   display: "inline-flex",
   alignItems: "center",
   borderRadius: 999,
-  background: "rgba(255,255,255,0.82)",
-  color: "#5b4a57",
+  background: "rgba(255,255,255,0.86)",
+  color: "#5b6f90",
   padding: "9px 13px",
   fontSize: 12,
   fontWeight: 600,
+  border: "1px solid rgba(255,255,255,0.85)",
   backdropFilter: "blur(10px)",
-  border: "1px solid rgba(255,255,255,0.75)",
 };
 
 const navBtnStyle = {
@@ -1162,7 +1249,7 @@ const navBtnStyle = {
   height: 42,
   borderRadius: 999,
   border: "1px solid rgba(255,255,255,0.45)",
-  background: "rgba(43, 32, 40, 0.28)",
+  background: "rgba(59, 79, 128, 0.28)",
   color: "white",
   cursor: "pointer",
   backdropFilter: "blur(10px)",
@@ -1176,7 +1263,7 @@ const dotsWrapStyle = {
   display: "flex",
   gap: 8,
   borderRadius: 999,
-  background: "rgba(43,32,40,0.22)",
+  background: "rgba(59,79,128,0.22)",
   padding: "8px 12px",
   backdropFilter: "blur(10px)",
 };
@@ -1186,7 +1273,7 @@ const countStyle = {
   bottom: 18,
   right: 18,
   borderRadius: 999,
-  background: "rgba(43,32,40,0.32)",
+  background: "rgba(59,79,128,0.32)",
   padding: "5px 12px",
   fontSize: 12,
   color: "white",
@@ -1200,7 +1287,7 @@ const modalOverlayStyle = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "rgba(32, 22, 30, 0.88)",
+  background: "rgba(24, 34, 54, 0.88)",
   padding: 16,
   backdropFilter: "blur(10px)",
 };
@@ -1218,11 +1305,35 @@ const circleBtnStyle = {
   justifyContent: "center",
 };
 
+const galleryCenterStyle = {
+  margin: "0 auto",
+  display: "flex",
+  maxHeight: "92vh",
+  width: "100%",
+  maxWidth: 1150,
+  flexDirection: "column",
+  gap: 16,
+};
+
 const galleryMainImageWrapStyle = {
   overflow: "hidden",
   borderRadius: 30,
   background: "rgba(255,255,255,0.05)",
   boxShadow: "0 25px 50px rgba(0,0,0,0.35)",
+};
+
+const galleryMainImageStyle = {
+  maxHeight: "72vh",
+  width: "100%",
+  objectFit: "contain",
+  display: "block",
+};
+
+const galleryBottomRowStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 16,
 };
 
 const galleryThumbRowStyle = {
@@ -1233,4 +1344,11 @@ const galleryThumbRowStyle = {
   borderRadius: 18,
   background: "rgba(255,255,255,0.08)",
   padding: 8,
+};
+
+const thumbStyle = {
+  height: 68,
+  width: 68,
+  objectFit: "cover",
+  display: "block",
 };
