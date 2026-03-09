@@ -10,8 +10,6 @@ import {
   ChevronRight,
   X,
   ZoomIn,
-  BookOpen,
-  Sparkles,
 } from "lucide-react";
 
 const PASSWORD_KEY = "between_us_password";
@@ -55,7 +53,7 @@ function normalizeLegacyPosts(posts) {
   }));
 }
 
-function ImageSlider({ images, title, onOpenGallery, isMobile }) {
+function ImageSlider({ images, title, onOpenGallery }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const prevSlide = () => {
@@ -67,64 +65,55 @@ function ImageSlider({ images, title, onOpenGallery, isMobile }) {
   };
 
   return (
-    <div style={{ ...sliderWrapStyle, minHeight: isMobile ? 280 : 360 }}>
+    <div style={sliderWrapStyle}>
       {images.length > 0 && (
         <img
           src={images[currentIndex]}
           alt={`${title} ${currentIndex + 1}`}
-          style={{ ...sliderImageStyle, minHeight: isMobile ? 280 : 360 }}
+          style={sliderImageStyle}
           onClick={() => onOpenGallery(images, currentIndex, title)}
         />
       )}
 
-      <div style={{ ...floatingBadgeRowStyle, left: isMobile ? 12 : 18, top: isMobile ? 12 : 18 }}>
-        <div style={{ ...badgeStyle, padding: isMobile ? "7px 10px" : "9px 13px", fontSize: isMobile ? 11 : 12 }}>
-          <ImageIcon size={13} style={{ marginRight: 6 }} />
+      <div style={floatingBadgeRowStyle}>
+        <div style={badgeStyle}>
+          <ImageIcon size={14} style={{ marginRight: 6 }} />
           {images.length} Photos
         </div>
-        <div style={{ ...badgeStyle, padding: isMobile ? "7px 10px" : "9px 13px", fontSize: isMobile ? 11 : 12 }}>
-          <ZoomIn size={13} style={{ marginRight: 6 }} />
+        <div style={badgeStyle}>
+          <ZoomIn size={14} style={{ marginRight: 6 }} />
           Open Gallery
         </div>
       </div>
 
       {images.length > 1 && (
         <>
-          <button
-            onClick={prevSlide}
-            style={{ ...navBtnStyle, left: isMobile ? 10 : 18, width: isMobile ? 36 : 42, height: isMobile ? 36 : 42 }}
-            type="button"
-          >
-            <ChevronLeft size={isMobile ? 18 : 20} />
+          <button onClick={prevSlide} style={{ ...navBtnStyle, left: 18 }} type="button">
+            <ChevronLeft size={20} />
           </button>
-          <button
-            onClick={nextSlide}
-            style={{ ...navBtnStyle, right: isMobile ? 10 : 18, width: isMobile ? 36 : 42, height: isMobile ? 36 : 42 }}
-            type="button"
-          >
-            <ChevronRight size={isMobile ? 18 : 20} />
+          <button onClick={nextSlide} style={{ ...navBtnStyle, right: 18 }} type="button">
+            <ChevronRight size={20} />
           </button>
 
-          <div style={{ ...dotsWrapStyle, bottom: isMobile ? 12 : 18 }}>
+          <div style={dotsWrapStyle}>
             {images.map((_, index) => (
               <button
                 key={index}
                 type="button"
                 onClick={() => setCurrentIndex(index)}
                 style={{
-                  width: 9,
-                  height: 9,
+                  width: 10,
+                  height: 10,
                   borderRadius: 999,
                   border: "none",
-                  background:
-                    index === currentIndex ? "#ffffff" : "rgba(255,255,255,0.45)",
+                  background: index === currentIndex ? "#ffffff" : "rgba(255,255,255,0.45)",
                   cursor: "pointer",
                 }}
               />
             ))}
           </div>
 
-          <div style={{ ...countStyle, bottom: isMobile ? 12 : 18, right: isMobile ? 12 : 18 }}>
+          <div style={countStyle}>
             {currentIndex + 1} / {images.length}
           </div>
         </>
@@ -133,7 +122,7 @@ function ImageSlider({ images, title, onOpenGallery, isMobile }) {
   );
 }
 
-function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
+function GalleryModal({ images, initialIndex, title, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   useEffect(() => {
@@ -169,24 +158,14 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
 
   return (
     <div style={modalOverlayStyle}>
-      <button
-        onClick={onClose}
-        style={{ ...circleBtnStyle, top: 20, right: 20, position: "absolute" }}
-        type="button"
-      >
+      <button onClick={onClose} style={{ ...circleBtnStyle, top: 20, right: 20, position: "absolute" }} type="button">
         <X size={20} />
       </button>
 
-      {images.length > 1 && !isMobile && (
+      {images.length > 1 && (
         <button
           onClick={prev}
-          style={{
-            ...circleBtnStyle,
-            left: 20,
-            top: "50%",
-            position: "absolute",
-            transform: "translateY(-50%)",
-          }}
+          style={{ ...circleBtnStyle, left: 20, top: "50%", position: "absolute", transform: "translateY(-50%)" }}
           type="button"
         >
           <ChevronLeft size={24} />
@@ -198,25 +177,19 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
           <img
             src={images[currentIndex]}
             alt={`${title} ${currentIndex + 1}`}
-            style={{ ...galleryMainImageStyle, maxHeight: isMobile ? "58vh" : "72vh" }}
+            style={galleryMainImageStyle}
           />
         </div>
 
-        <div style={{ ...galleryBottomRowStyle, flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center" }}>
+        <div style={galleryBottomRowStyle}>
           <div style={{ color: "#ffffff" }}>
             <p style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{title}</p>
-            <p
-              style={{
-                fontSize: 14,
-                color: "rgba(255,255,255,0.72)",
-                margin: "4px 0 0",
-              }}
-            >
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", margin: "4px 0 0" }}>
               {currentIndex + 1} / {images.length}
             </p>
           </div>
 
-          <div style={{ ...galleryThumbRowStyle, maxWidth: isMobile ? "100%" : "65%" }}>
+          <div style={galleryThumbRowStyle}>
             {images.map((img, index) => (
               <button
                 key={index}
@@ -226,10 +199,7 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
                   flexShrink: 0,
                   overflow: "hidden",
                   borderRadius: 14,
-                  border:
-                    index === currentIndex
-                      ? "2px solid white"
-                      : "2px solid transparent",
+                  border: index === currentIndex ? "2px solid white" : "2px solid transparent",
                   padding: 0,
                   background: "transparent",
                   cursor: "pointer",
@@ -242,16 +212,10 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
         </div>
       </div>
 
-      {images.length > 1 && !isMobile && (
+      {images.length > 1 && (
         <button
           onClick={next}
-          style={{
-            ...circleBtnStyle,
-            right: 20,
-            top: "50%",
-            position: "absolute",
-            transform: "translateY(-50%)",
-          }}
+          style={{ ...circleBtnStyle, right: 20, top: "50%", position: "absolute", transform: "translateY(-50%)" }}
           type="button"
         >
           <ChevronRight size={24} />
@@ -279,15 +243,6 @@ export default function App() {
   const [galleryTitle, setGalleryTitle] = useState("");
 
   const [activeView, setActiveView] = useState("write");
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth <= 768 : false
-  );
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   useEffect(() => {
     const savedPassword = localStorage.getItem(PASSWORD_KEY) || "ourmemory";
@@ -412,115 +367,41 @@ export default function App() {
     setGalleryOpen(true);
   };
 
-  const responsiveContainerStyle = {
-    ...containerStyle,
-    padding: isMobile ? "20px 14px 32px" : "36px 18px 54px",
-  };
-
-  const responsiveHeroTitleStyle = {
-    ...heroTitleStyle,
-    fontSize: isMobile ? 56 : 108,
-    lineHeight: isMobile ? 1.02 : 0.95,
-  };
-
-  const responsiveHeroDescStyle = {
-    ...heroDescStyle,
-    fontSize: isMobile ? 18 : 24,
-  };
-
-  const responsiveMainGridStyle = {
-    ...mainGridStyle,
-    gridTemplateColumns: isMobile ? "1fr" : "420px minmax(0, 1fr)",
-    gap: isMobile ? 20 : 32,
-  };
-
-  const responsivePostGridStyle = {
-    ...postGridStyle,
-    gridTemplateColumns: isMobile ? "1fr" : "1.02fr 0.98fr",
-  };
-
-  const responsiveHeaderTitleStyle = {
-    ...headerTitleStyle,
-    fontSize: isMobile ? 42 : 64,
-  };
-
-  const responsiveLoginSingleWrapStyle = {
-    ...loginSingleWrapStyle,
-    minHeight: isMobile ? "100vh" : "88vh",
-    maxWidth: isMobile ? "100%" : 720,
-  };
-
-  const responsiveLoginCardStyle = {
-    ...loginCardStyle,
-    maxWidth: isMobile ? "100%" : 540,
-    padding: isMobile ? 24 : 34,
-  };
-
-  const responsiveFormCardStyle = {
-    ...formCardStyle,
-    position: isMobile ? "static" : "sticky",
-    top: isMobile ? "auto" : 24,
-    padding: isMobile ? 20 : 26,
-  };
-
-  const responsivePostBodyStyle = {
-    ...postBodyStyle,
-    padding: isMobile ? 20 : 34,
-  };
-
-  const responsiveLibraryGridStyle = {
-    ...libraryGridStyle,
-    gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(2, minmax(0, 1fr))",
-  };
-
   if (!loggedIn) {
     return (
       <div style={pageStyle}>
         <div style={ambientGlowOneStyle} />
         <div style={ambientGlowTwoStyle} />
-        <div style={textureOverlayStyle} />
 
-        <div style={responsiveContainerStyle}>
-          <div style={responsiveLoginSingleWrapStyle}>
-            <div style={loginHeroStyle}>
+        <div style={containerStyle}>
+          <div style={loginWrapStyle}>
+            <div>
               <div style={topBadgeStyle}>Private Memory Archive</div>
-              <h1 style={responsiveHeroTitleStyle}>Between Us</h1>
-              <p style={responsiveHeroDescStyle}>
-                A place to keep even the smallest moments.
-              </p>
-            </div>
 
-            <div style={loginInfoCardStyle}>
-              <div style={loginInfoTopStyle}>
-                <Sparkles size={18} />
-                <span>About this space</span>
+              <div style={{ marginTop: 18 }}>
+                <h1 style={heroTitleStyle}>Between Us</h1>
+                <p style={heroDescStyle}>
+                  A place to keep even the smallest moments.
+                </p>
               </div>
-              <p style={loginInfoTextStyle}>
-                Created as a quiet archive for the moments that feel small in the day,
-                but stay with us for much longer.
-              </p>
-              <div style={loginInfoListStyle}>
-                <div style={loginInfoItemStyle}>
-                  <BookOpen size={16} />
-                  <div>
-                    <strong style={infoItemTitleStyle}>How to use</strong>
-                    <p style={infoItemTextStyle}>Write a memory, add photos, and keep each moment in one place.</p>
-                  </div>
+
+              <div style={featureGridStyle}>
+                <div style={featureCardStyle}>
+                  <Heart size={20} style={{ marginBottom: 8 }} />
+                  <p style={featureTextStyle}>Meaningful Memories</p>
                 </div>
-                <div style={loginInfoItemStyle}>
-                  <Heart size={16} />
-                  <div>
-                    <strong style={infoItemTitleStyle}>Why it exists</strong>
-                    <p style={infoItemTextStyle}>To give ordinary days a place to remain beautiful a little longer.</p>
-                  </div>
+                <div style={featureCardStyle}>
+                  <Lock size={20} style={{ marginBottom: 8 }} />
+                  <p style={featureTextStyle}>Private Access</p>
+                </div>
+                <div style={featureCardStyle}>
+                  <ImageIcon size={20} style={{ marginBottom: 8 }} />
+                  <p style={featureTextStyle}>Photo Journal</p>
                 </div>
               </div>
-              <p style={quoteStyle}>
-                “Some moments become precious only after they are gently kept.”
-              </p>
             </div>
 
-            <div style={responsiveLoginCardStyle}>
+            <div style={loginCardStyle}>
               <div style={{ textAlign: "center", marginBottom: 20 }}>
                 <div style={lockCircleStyle}>
                   <Lock size={24} />
@@ -536,14 +417,15 @@ export default function App() {
                   value={loginInput}
                   onChange={(e) => setLoginInput(e.target.value)}
                   style={inputStyle}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleLogin();
-                  }}
                 />
                 <button onClick={handleLogin} style={primaryBtnStyle} type="button">
                   Enter
                 </button>
                 {error && <p style={errorTextStyle}>{error}</p>}
+              </div>
+
+              <div style={hintBoxStyle}>
+                Default password: <strong>ourmemory</strong>
               </div>
             </div>
           </div>
@@ -556,25 +438,20 @@ export default function App() {
     <div style={pageStyle}>
       <div style={ambientGlowOneStyle} />
       <div style={ambientGlowTwoStyle} />
-      <div style={textureOverlayStyle} />
 
-      <div style={responsiveContainerStyle}>
+      <div style={containerStyle}>
         <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
           <div style={headerCardStyle}>
             <div>
               <p style={headerMiniStyle}>PRIVATE JOURNAL</p>
-              <h1 style={responsiveHeaderTitleStyle}>Between Us</h1>
+              <h1 style={headerTitleStyle}>Between Us</h1>
               <p style={headerDescStyle}>
                 A place to keep even the smallest moments.
               </p>
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button
-                onClick={handleSetPassword}
-                style={secondaryBtnStyle}
-                type="button"
-              >
+              <button onClick={handleSetPassword} style={secondaryBtnStyle} type="button">
                 Change Password
               </button>
               <button onClick={handleLogout} style={logoutBtnStyle} type="button">
@@ -583,9 +460,9 @@ export default function App() {
             </div>
           </div>
 
-          <div style={responsiveMainGridStyle}>
+          <div style={mainGridStyle}>
             <div>
-              <div style={responsiveFormCardStyle}>
+              <div style={formCardStyle}>
                 <div style={sectionHeaderRowStyle}>
                   <div>
                     <p style={smallLabelStyle}>Journal Space</p>
@@ -602,33 +479,21 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setActiveView("write")}
-                      style={
-                        activeView === "write"
-                          ? activeTabBtnActiveStyle
-                          : activeTabBtnStyle
-                      }
+                      style={activeView === "write" ? activeTabBtnActiveStyle : activeTabBtnStyle}
                     >
                       Write
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveView("memories")}
-                      style={
-                        activeView === "memories"
-                          ? activeTabBtnActiveStyle
-                          : activeTabBtnStyle
-                      }
+                      style={activeView === "memories" ? activeTabBtnActiveStyle : activeTabBtnStyle}
                     >
                       Notes
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveView("photos")}
-                      style={
-                        activeView === "photos"
-                          ? activeTabBtnActiveStyle
-                          : activeTabBtnStyle
-                      }
+                      style={activeView === "photos" ? activeTabBtnActiveStyle : activeTabBtnStyle}
                     >
                       Photos
                     </button>
@@ -637,14 +502,6 @@ export default function App() {
 
                 {activeView === "write" && (
                   <>
-                    <div style={softPanelStyle}>
-                      <p style={softPanelTitleStyle}>Why this journal exists</p>
-                      <p style={softPanelTextStyle}>
-                        A quiet place to hold the days that may seem ordinary now,
-                        but become beautiful when looked back on later.
-                      </p>
-                    </div>
-
                     <input
                       placeholder="Title"
                       value={title}
@@ -696,24 +553,18 @@ export default function App() {
                       style={textareaStyle}
                     />
 
-                    <button
-                      onClick={handleAddPost}
-                      style={primaryBtnStyle}
-                      type="button"
-                    >
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}
-                      >
+                    <button onClick={handleAddPost} style={primaryBtnStyle} type="button">
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                         <Plus size={16} />
                         Save Memory
                       </span>
                     </button>
 
                     {error && <p style={errorTextStyle}>{error}</p>}
+
+                    <div style={hintSoftStyle}>
+                      This version is saved in your browser as a prototype.
+                    </div>
                   </>
                 )}
 
@@ -735,9 +586,7 @@ export default function App() {
                         ))}
                       </div>
                     ) : (
-                      <div style={emptyLibraryStyle}>
-                        No notes yet. Add your first memory.
-                      </div>
+                      <div style={emptyLibraryStyle}>No notes yet. Add your first memory.</div>
                     )}
                   </div>
                 )}
@@ -746,40 +595,22 @@ export default function App() {
                   <div style={photoLibraryStyle}>
                     <div style={libraryHeaderStyle}>
                       <h3 style={libraryTitleHeadingStyle}>Photo Library</h3>
-                      <span style={libraryCountStyle}>
-                        {photoLibrary.length} photos
-                      </span>
+                      <span style={libraryCountStyle}>{photoLibrary.length} photos</span>
                     </div>
 
                     {photoLibrary.length > 0 ? (
-                      <div style={responsiveLibraryGridStyle}>
+                      <div style={libraryGridStyle}>
                         {photoLibrary.map((photo, index) => (
                           <button
                             key={`${photo.postId}-${photo.imageIndex}-${index}`}
                             type="button"
-                            onClick={() =>
-                              openGallery(photo.images, photo.imageIndex, photo.title)
-                            }
+                            onClick={() => openGallery(photo.images, photo.imageIndex, photo.title)}
                             style={libraryCardStyle}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "translateY(-4px)";
-                              e.currentTarget.style.boxShadow = "0 18px 30px rgba(79,111,173,0.12)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = "translateY(0)";
-                              e.currentTarget.style.boxShadow = "0 12px 24px rgba(79,111,173,0.08)";
-                            }}
                           >
-                            <img
-                              src={photo.image}
-                              alt={photo.title}
-                              style={libraryImageStyle}
-                            />
+                            <img src={photo.image} alt={photo.title} style={libraryImageStyle} />
                             <div style={libraryMetaStyle}>
                               <div style={libraryTitleStyle}>{photo.title}</div>
-                              <div style={libraryDateStyle}>
-                                {formatDate(photo.date)}
-                              </div>
+                              <div style={libraryDateStyle}>{formatDate(photo.date)}</div>
                             </div>
                           </button>
                         ))}
@@ -810,29 +641,15 @@ export default function App() {
               </div>
 
               {sortedPosts.map((post) => (
-                <div
-                  key={post.id}
-                  style={postCardStyle}
-                  onMouseEnter={(e) => {
-                    if (!isMobile) {
-                      e.currentTarget.style.transform = "translateY(-4px)";
-                      e.currentTarget.style.boxShadow = "0 28px 48px rgba(79,111,173,0.12)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 22px 42px rgba(79, 111, 173, 0.08)";
-                  }}
-                >
-                  <div style={responsivePostGridStyle}>
+                <div key={post.id} style={postCardStyle}>
+                  <div style={postGridStyle}>
                     <ImageSlider
                       images={post.images}
                       title={post.title}
                       onOpenGallery={openGallery}
-                      isMobile={isMobile}
                     />
 
-                    <div style={responsivePostBodyStyle}>
+                    <div style={postBodyStyle}>
                       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                         <div
                           style={{
@@ -872,9 +689,7 @@ export default function App() {
               ))}
 
               {sortedPosts.length === 0 && (
-                <div style={emptyLibraryStyle}>
-                  No memories yet. Start with your first entry.
-                </div>
+                <div style={emptyLibraryStyle}>No memories yet. Start with your first entry.</div>
               )}
             </div>
           </div>
@@ -887,7 +702,6 @@ export default function App() {
           initialIndex={galleryIndex}
           title={galleryTitle}
           onClose={() => setGalleryOpen(false)}
-          isMobile={isMobile}
         />
       )}
     </div>
@@ -898,17 +712,8 @@ const pageStyle = {
   minHeight: "100vh",
   position: "relative",
   overflow: "hidden",
-  background:
-    "linear-gradient(180deg, rgba(244,247,251,0.95) 0%, rgba(238,242,247,0.95) 35%, rgba(233,237,243,0.96) 70%, rgba(248,250,252,0.98) 100%)",
+  background: "linear-gradient(180deg, #f4f7fb 0%, #eef2f7 35%, #e9edf3 70%, #f8fafc 100%)",
   color: "#2b2230",
-};
-
-const textureOverlayStyle = {
-  position: "fixed",
-  inset: 0,
-  background:
-    "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.55), transparent 28%), radial-gradient(circle at 80% 30%, rgba(255,255,255,0.35), transparent 24%), radial-gradient(circle at 70% 80%, rgba(220,230,248,0.18), transparent 22%)",
-  pointerEvents: "none",
 };
 
 const ambientGlowOneStyle = {
@@ -916,7 +721,7 @@ const ambientGlowOneStyle = {
   width: 420,
   height: 420,
   borderRadius: "50%",
-  background: "rgba(170, 190, 230, 0.18)",
+  background: "rgba(170, 190, 230, 0.22)",
   filter: "blur(80px)",
   top: -80,
   left: -90,
@@ -928,7 +733,7 @@ const ambientGlowTwoStyle = {
   width: 360,
   height: 360,
   borderRadius: "50%",
-  background: "rgba(170, 200, 210, 0.18)",
+  background: "rgba(170, 200, 210, 0.24)",
   filter: "blur(80px)",
   bottom: -60,
   right: -50,
@@ -943,146 +748,76 @@ const containerStyle = {
   zIndex: 1,
 };
 
-const loginSingleWrapStyle = {
+const loginWrapStyle = {
   minHeight: "88vh",
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  gap: 28,
-  maxWidth: 720,
-};
-
-const loginHeroStyle = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 14,
-};
-
-const loginInfoCardStyle = {
-  borderRadius: 30,
-  border: "1px solid rgba(255,255,255,0.82)",
-  background: "rgba(255,255,255,0.56)",
-  boxShadow: "0 24px 50px rgba(79, 111, 173, 0.08)",
-  backdropFilter: "blur(18px)",
-  padding: 26,
-  maxWidth: 720,
-  display: "flex",
-  flexDirection: "column",
-  gap: 16,
-};
-
-const loginInfoTopStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 8,
-  color: "#4f6fad",
-  fontSize: 14,
-  fontWeight: 700,
-};
-
-const loginInfoTextStyle = {
-  margin: 0,
-  color: "#5d6f8c",
-  fontSize: 16,
-  lineHeight: 1.8,
-};
-
-const loginInfoListStyle = {
   display: "grid",
-  gridTemplateColumns: "1fr",
-  gap: 14,
-};
-
-const loginInfoItemStyle = {
-  display: "flex",
-  gap: 12,
-  alignItems: "flex-start",
-  color: "#4f6fad",
-};
-
-const infoItemTitleStyle = {
-  display: "block",
-  color: "#2f3e5c",
-  marginBottom: 4,
-};
-
-const infoItemTextStyle = {
-  margin: 0,
-  color: "#5d6f8c",
-  fontSize: 14,
-  lineHeight: 1.7,
-};
-
-const quoteStyle = {
-  margin: 0,
-  color: "#6b7f9d",
-  fontSize: 15,
-  lineHeight: 1.8,
-  fontStyle: "italic",
-};
-
-const softPanelStyle = {
-  borderRadius: 20,
-  padding: 16,
-  background: "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(239,245,255,0.78))",
-  border: "1px solid rgba(219,230,245,0.95)",
-};
-
-const softPanelTitleStyle = {
-  margin: "0 0 6px",
-  fontSize: 14,
-  fontWeight: 700,
-  color: "#36527f",
-};
-
-const softPanelTextStyle = {
-  margin: 0,
-  fontSize: 14,
-  lineHeight: 1.7,
-  color: "#5c6f8f",
+  gridTemplateColumns: "1.06fr 0.94fr",
+  gap: 34,
+  alignItems: "center",
 };
 
 const topBadgeStyle = {
   display: "inline-block",
   padding: "9px 16px",
   borderRadius: 999,
-  background: "rgba(255,255,255,0.72)",
+  background: "rgba(255,255,255,0.75)",
   border: "1px solid rgba(255,255,255,0.9)",
   fontSize: 13,
   letterSpacing: "0.18em",
   color: "#5f6f8a",
   fontWeight: 600,
   backdropFilter: "blur(10px)",
-  width: "fit-content",
 };
 
 const heroTitleStyle = {
-  fontSize: 108,
-  lineHeight: 0.95,
+  fontSize: 86,
+  lineHeight: 1,
   fontWeight: 700,
-  margin: 0,
+  margin: "0 0 18px",
   color: "#2f3e5c",
   fontFamily: "Playfair Display, serif",
   letterSpacing: "0.02em",
 };
 
 const heroDescStyle = {
-  maxWidth: 680,
-  fontSize: 24,
-  lineHeight: 1.6,
+  maxWidth: 630,
+  fontSize: 20,
+  lineHeight: 1.9,
   color: "#5d6f8c",
   margin: 0,
   fontFamily: "Inter, sans-serif",
 };
 
+const featureGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gap: 14,
+  marginTop: 28,
+};
+
+const featureCardStyle = {
+  borderRadius: 26,
+  border: "1px solid rgba(255,255,255,0.82)",
+  background: "rgba(255,255,255,0.64)",
+  boxShadow: "0 18px 34px rgba(79, 111, 173, 0.08)",
+  backdropFilter: "blur(16px)",
+  padding: 20,
+  color: "#5c6f8f",
+};
+
+const featureTextStyle = {
+  margin: 0,
+  fontSize: 14,
+  fontWeight: 600,
+};
+
 const loginCardStyle = {
   borderRadius: 34,
   border: "1px solid rgba(255,255,255,0.82)",
-  background: "rgba(255,255,255,0.68)",
+  background: "rgba(255,255,255,0.72)",
   boxShadow: "0 28px 60px rgba(79, 111, 173, 0.10)",
   backdropFilter: "blur(18px)",
   padding: 34,
-  maxWidth: 540,
 };
 
 const lockCircleStyle = {
@@ -1175,6 +910,16 @@ const errorTextStyle = {
   margin: 0,
 };
 
+const hintBoxStyle = {
+  borderRadius: 18,
+  background: "rgba(236, 240, 248, 0.95)",
+  padding: 16,
+  fontSize: 14,
+  lineHeight: 1.7,
+  color: "#5d6f8c",
+  marginTop: 16,
+};
+
 const headerCardStyle = {
   display: "flex",
   flexWrap: "wrap",
@@ -1183,7 +928,7 @@ const headerCardStyle = {
   justifyContent: "space-between",
   borderRadius: 34,
   border: "1px solid rgba(255,255,255,0.85)",
-  background: "rgba(255,255,255,0.68)",
+  background: "rgba(255,255,255,0.70)",
   padding: 28,
   boxShadow: "0 20px 40px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
@@ -1224,7 +969,7 @@ const formCardStyle = {
   top: 24,
   borderRadius: 34,
   border: "1px solid rgba(255,255,255,0.85)",
-  background: "rgba(255,255,255,0.72)",
+  background: "rgba(255,255,255,0.74)",
   boxShadow: "0 20px 40px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
   padding: 26,
@@ -1324,6 +1069,15 @@ const previewImageStyle = {
   border: "1px solid rgba(219, 230, 245, 0.95)",
 };
 
+const hintSoftStyle = {
+  borderRadius: 18,
+  background: "linear-gradient(135deg, rgba(232,238,250,0.95), rgba(240,245,255,0.95))",
+  padding: 16,
+  fontSize: 14,
+  lineHeight: 1.7,
+  color: "#5d6f8c",
+};
+
 const panelWrapStyle = {
   display: "flex",
   flexDirection: "column",
@@ -1420,7 +1174,6 @@ const libraryCardStyle = {
   padding: 0,
   textAlign: "left",
   boxShadow: "0 12px 24px rgba(79,111,173,0.08)",
-  transition: "transform 0.2s ease, box-shadow 0.2s ease",
 };
 
 const libraryImageStyle = {
@@ -1477,7 +1230,6 @@ const postCardStyle = {
   background: "rgba(255,255,255,0.74)",
   boxShadow: "0 22px 42px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
-  transition: "transform 0.22s ease, box-shadow 0.22s ease",
 };
 
 const postGridStyle = {
@@ -1490,8 +1242,7 @@ const postBodyStyle = {
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.66), rgba(248,251,255,0.56))",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.66), rgba(248,251,255,0.56))",
 };
 
 const postTitleStyle = {
@@ -1531,85 +1282,162 @@ const iconGhostBtnStyle = {
 
 const savedRowStyle = {
   marginTop: 18,
-  display: "  cursor: "pointer",
-  backdropFilter: "blur(8px)",
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
+  fontSize: 12,
+  color: "#4f6fad",
+};
+
+const sliderWrapStyle = {
+  position: "relative",
+  minHeight: 360,
+  overflow: "hidden",
+  background: "#eef3fb",
+};
+
+const sliderImageStyle = {
+  width: "100%",
+  height: "100%",
+  minHeight: 360,
+  objectFit: "cover",
+  display: "block",
+  cursor: "pointer",
+};
+
+const floatingBadgeRowStyle = {
+  position: "absolute",
+  left: 18,
+  top: 18,
+  display: "flex",
+  gap: 8,
+};
+
+const badgeStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  borderRadius: 999,
+  background: "rgba(255,255,255,0.86)",
+  color: "#5b6f90",
+  padding: "9px 13px",
+  fontSize: 12,
+  fontWeight: 600,
+  border: "1px solid rgba(255,255,255,0.85)",
+  backdropFilter: "blur(10px)",
+};
+
+const navBtnStyle = {
+  position: "absolute",
+  top: "50%",
+  transform: "translateY(-50%)",
+  zIndex: 10,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 42,
+  height: 42,
+  borderRadius: 999,
+  border: "1px solid rgba(255,255,255,0.45)",
+  background: "rgba(59, 79, 128, 0.28)",
+  color: "white",
+  cursor: "pointer",
+  backdropFilter: "blur(10px)",
 };
 
 const dotsWrapStyle = {
   position: "absolute",
+  bottom: 18,
   left: "50%",
   transform: "translateX(-50%)",
   display: "flex",
-  gap: 6,
+  gap: 8,
+  borderRadius: 999,
+  background: "rgba(59,79,128,0.22)",
+  padding: "8px 12px",
+  backdropFilter: "blur(10px)",
 };
 
 const countStyle = {
   position: "absolute",
-  color: "white",
+  bottom: 18,
+  right: 18,
+  borderRadius: 999,
+  background: "rgba(59,79,128,0.32)",
+  padding: "5px 12px",
   fontSize: 12,
-  background: "rgba(0,0,0,0.35)",
-  padding: "4px 8px",
-  borderRadius: 8,
+  color: "white",
+  backdropFilter: "blur(10px)",
 };
 
 const modalOverlayStyle = {
   position: "fixed",
   inset: 0,
-  background: "rgba(10,14,25,0.92)",
+  zIndex: 50,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  zIndex: 999,
+  background: "rgba(24, 34, 54, 0.88)",
+  padding: 16,
+  backdropFilter: "blur(10px)",
 };
 
-const galleryCenterStyle = {
-  width: "92%",
-  maxWidth: 1200,
+const circleBtnStyle = {
+  width: 48,
+  height: 48,
+  borderRadius: 999,
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "rgba(255,255,255,0.12)",
+  color: "white",
+  cursor: "pointer",
   display: "flex",
-  flexDirection: "column",
-  gap: 20,
-};
-
-const galleryMainImageWrapStyle = {
-  width: "100%",
-  display: "flex",
+  alignItems: "center",
   justifyContent: "center",
 };
 
+const galleryCenterStyle = {
+  margin: "0 auto",
+  display: "flex",
+  maxHeight: "92vh",
+  width: "100%",
+  maxWidth: 1150,
+  flexDirection: "column",
+  gap: 16,
+};
+
+const galleryMainImageWrapStyle = {
+  overflow: "hidden",
+  borderRadius: 30,
+  background: "rgba(255,255,255,0.05)",
+  boxShadow: "0 25px 50px rgba(0,0,0,0.35)",
+};
+
 const galleryMainImageStyle = {
+  maxHeight: "72vh",
   width: "100%",
   objectFit: "contain",
-  borderRadius: 16,
+  display: "block",
 };
 
 const galleryBottomRowStyle = {
   display: "flex",
+  alignItems: "center",
   justifyContent: "space-between",
   gap: 16,
 };
 
 const galleryThumbRowStyle = {
   display: "flex",
-  gap: 10,
+  maxWidth: "65%",
+  gap: 8,
   overflowX: "auto",
+  borderRadius: 18,
+  background: "rgba(255,255,255,0.08)",
+  padding: 8,
 };
 
 const thumbStyle = {
-  width: 70,
-  height: 70,
+  height: 68,
+  width: 68,
   objectFit: "cover",
-  borderRadius: 12,
-};
-
-const circleBtnStyle = {
-  width: 42,
-  height: 42,
-  borderRadius: "50%",
-  border: "1px solid rgba(255,255,255,0.3)",
-  background: "rgba(255,255,255,0.08)",
-  color: "white",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
+  display: "block",
 };
