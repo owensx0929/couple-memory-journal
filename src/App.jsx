@@ -290,7 +290,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const savedPassword = localStorage.getItem(PASSWORD_KEY) || "ourmemory";
+    const savedPassword = "ourmemory";
     const savedPosts = localStorage.getItem(POSTS_KEY);
     const session = localStorage.getItem(SESSION_KEY) === "true";
 
