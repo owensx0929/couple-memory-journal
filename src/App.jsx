@@ -243,6 +243,7 @@ export default function App() {
   const [galleryImages, setGalleryImages] = useState([]);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [galleryTitle, setGalleryTitle] = useState("");
+  const [activeTab, setActiveTab] = useState("write");
 
   useEffect(() => {
     const savedPassword = localStorage.getItem(PASSWORD_KEY) || "ourmemory";
@@ -269,6 +270,19 @@ export default function App() {
   const sortedPosts = useMemo(() => {
     return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [posts]);
+
+  const recentPhotos = useMemo(() => {
+    return sortedPosts.flatMap((post) =>
+      post.images.map((img, index) => ({
+        image: img,
+        title: post.title,
+        date: post.date,
+        postId: post.id,
+        imageIndex: index,
+        images: post.images,
+      }))
+    );
+  }, [sortedPosts]);
 
   const handleLogin = () => {
     if (loginInput === password) {
@@ -324,6 +338,7 @@ export default function App() {
     setText("");
     setImageFiles([]);
     setError("");
+    setActiveTab("memories");
   };
 
   const handleDelete = (id) => {
@@ -421,55 +436,100 @@ export default function App() {
             <div style={mainGridStyle}>
               <div>
                 <div style={formCardStyle}>
-                  <div>
-                    <p style={{ margin: "0 0 6px", color: "#5e7398", fontSize: 14 }}>New Entry</p>
-                    <h2 style={{ margin: 0, fontSize: 34, color: "#322734" }}>Add a Memory</h2>
+                  <div style={sectionHeaderRowStyle}>
+                    <div>
+                      <p style={{ margin: "0 0 6px", color: "#5e7398", fontSize: 14 }}>New Entry</p>
+                      <h2 style={{ margin: 0, fontSize: 34, color: "#2f3e5c" }}>Add a Memory</h2>
+                    </div>
+                    <div style={tabSwitchStyle}>
+                      <button onClick={() => setActiveTab("write")} style={activeTab === "write" ? activeTabBtnActiveStyle : activeTabBtnStyle}>Write</button>
+                      <button onClick={() => setActiveTab("photos")} style={activeTab === "photos" ? activeTabBtnActiveStyle : activeTabBtnStyle}>Photos</button>
+                    </div>
                   </div>
 
-                  <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
-                  <div style={uploadWrapStyle}>
-                    <label style={uploadLabelStyle}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleImageUpload}
-                        style={{ display: "none" }}
-                      />
-                      Choose Photos
-                    </label>
-                    <div style={uploadHintStyle}>Upload one or more photos from your device.</div>
-                    {imageFiles.length > 0 && (
-                      <div style={previewGridStyle}>
-                        {imageFiles.map((img, index) => (
-                          <img key={index} src={img} alt={`preview-${index}`} style={previewImageStyle} />
-                        ))}
+                  {activeTab === "write" ? (
+                    <>
+                      <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+                      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
+
+                      <div style={uploadWrapStyle}>
+                        <label style={uploadLabelStyle}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageUpload}
+                            style={{ display: "none" }}
+                          />
+                          Choose Photos
+                        </label>
+                        <div style={uploadHintStyle}>Upload one or more photos from your device.</div>
+                        {imageFiles.length > 0 && (
+                          <div style={previewGridStyle}>
+                            {imageFiles.map((img, index) => (
+                              <img key={index} src={img} alt={`preview-${index}`} style={previewImageStyle} />
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <textarea
-                    placeholder="Write about the moment, your feelings, and what made it special"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    style={{ ...inputStyle, minHeight: 170, resize: "vertical", paddingTop: 14 }}
-                  />
 
-                  <button onClick={handleAddPost} style={primaryBtnStyle}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      <Plus size={16} /> Save Memory
-                    </span>
-                  </button>
+                      <textarea
+                        placeholder="Write about the moment, your feelings, and what made it special"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        style={{ ...inputStyle, minHeight: 170, resize: "vertical", paddingTop: 14 }}
+                      />
 
-                  {error && <p style={{ fontSize: 14, color: "#4f6fad", margin: 0 }}>{error}</p>}
+                      <button onClick={handleAddPost} style={primaryBtnStyle}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                          <Plus size={16} /> Save Memory
+                        </span>
+                      </button>
 
-                  <div style={hintPinkStyle}>
-                    This version is saved in your browser as a prototype.
-                  </div>
+                      {error && <p style={{ fontSize: 14, color: "#4f6fad", margin: 0 }}>{error}</p>}
+
+                      <div style={hintPinkStyle}>
+                        This version is saved in your browser as a prototype.
+                      </div>
+                    </>
+                  ) : (
+                    <div style={photoLibraryStyle}>
+                      <div style={libraryHeaderStyle}>
+                        <h3 style={{ margin: 0, fontSize: 24, color: "#2f3e5c" }}>Photo Library</h3>
+                        <span style={libraryCountStyle}>{recentPhotos.length} photos</span>
+                      </div>
+                      {recentPhotos.length > 0 ? (
+                        <div style={libraryGridStyle}>
+                          {recentPhotos.map((photo, index) => (
+                            <button
+                              key={`${photo.postId}-${photo.imageIndex}-${index}`}
+                              onClick={() => openGallery(photo.images, photo.imageIndex, photo.title)}
+                              style={libraryCardStyle}
+                            >
+                              <img src={photo.image} alt={photo.title} style={libraryImageStyle} />
+                              <div style={libraryMetaStyle}>
+                                <div style={libraryTitleStyle}>{photo.title}</div>
+                                <div style={libraryDateStyle}>{formatDate(photo.date)}</div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={emptyLibraryStyle}>No photos yet. Add a memory to start your gallery.</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+                <div style={memoriesHeaderStyle}>
+                  <div>
+                    <p style={{ margin: "0 0 6px", color: "#5e7398", fontSize: 14 }}>Your Collection</p>
+                    <h2 style={{ margin: 0, fontSize: 30, color: "#2f3e5c" }}>Saved Memories</h2>
+                  </div>
+                  <button onClick={() => setActiveTab("write")} style={secondaryBtnStyle}>Add New</button>
+                </div>
                 {sortedPosts.map((post, index) => (
                   <motion.div
                     key={post.id}
@@ -516,6 +576,175 @@ export default function App() {
             </div>
           </div>
         )}
+      </div>
+
+      {galleryOpen && (
+        <GalleryModal
+          images={galleryImages}
+          initialIndex={galleryIndex}
+          title={galleryTitle}
+          onClose={() => setGalleryOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+const sectionHeaderRowStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  alignItems: "center",
+  flexWrap: "wrap",
+};
+
+const tabSwitchStyle = {
+  display: "flex",
+  gap: 8,
+  padding: 6,
+  borderRadius: 999,
+  background: "rgba(230, 237, 248, 0.9)",
+};
+
+const activeTabBtnStyle = {
+  border: "none",
+  background: "transparent",
+  color: "#6b7f9d",
+  padding: "10px 14px",
+  borderRadius: 999,
+  cursor: "pointer",
+  fontWeight: 600,
+};
+
+const activeTabBtnActiveStyle = {
+  border: "none",
+  background: "white",
+  color: "#36527f",
+  padding: "10px 14px",
+  borderRadius: 999,
+  cursor: "pointer",
+  fontWeight: 700,
+  boxShadow: "0 6px 16px rgba(79,111,173,0.12)",
+};
+
+const photoLibraryStyle = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 14,
+};
+
+const libraryHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 10,
+};
+
+const libraryCountStyle = {
+  fontSize: 13,
+  color: "#5c6f8f",
+  background: "rgba(230, 237, 248, 0.9)",
+  borderRadius: 999,
+  padding: "8px 12px",
+  fontWeight: 600,
+};
+
+const libraryGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: 12,
+};
+
+const libraryCardStyle = {
+  border: "1px solid rgba(219, 230, 245, 0.95)",
+  background: "rgba(255,255,255,0.95)",
+  borderRadius: 18,
+  overflow: "hidden",
+  cursor: "pointer",
+  padding: 0,
+  textAlign: "left",
+  boxShadow: "0 12px 24px rgba(79,111,173,0.08)",
+};
+
+const libraryImageStyle = {
+  width: "100%",
+  aspectRatio: "1 / 1",
+  objectFit: "cover",
+  display: "block",
+};
+
+const libraryMetaStyle = {
+  padding: 12,
+};
+
+const libraryTitleStyle = {
+  fontSize: 14,
+  fontWeight: 700,
+  color: "#2f3e5c",
+  marginBottom: 4,
+};
+
+const libraryDateStyle = {
+  fontSize: 12,
+  color: "#6b7f9d",
+};
+
+const emptyLibraryStyle = {
+  borderRadius: 18,
+  padding: 20,
+  background: "rgba(240,245,255,0.95)",
+  color: "#5c6f8f",
+  fontSize: 14,
+  lineHeight: 1.7,
+};
+
+const uploadWrapStyle = {
+  width: "100%",
+  borderRadius: 18,
+  border: "1px solid #dbe6f5",
+  background: "rgba(255,255,255,0.9)",
+  padding: 14,
+  boxSizing: "border-box",
+};
+
+const uploadLabelStyle = {
+  display: "inline-block",
+  padding: "10px 14px",
+  borderRadius: 14,
+  background: "linear-gradient(135deg, #eef4ff, #dfeafc)",
+  color: "#36527f",
+  fontWeight: 600,
+  cursor: "pointer",
+  marginBottom: 10,
+};
+
+const uploadHintStyle = {
+  fontSize: 13,
+  color: "#5c6f8f",
+  marginBottom: 12,
+};
+
+const previewGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gap: 10,
+};
+
+const previewImageStyle = {
+  width: "100%",
+  aspectRatio: "1 / 1",
+  objectFit: "cover",
+  borderRadius: 14,
+  border: "1px solid rgba(219, 230, 245, 0.95)",
+};
+
+const memoriesHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  flexWrap: "wrap",
+};
       </div>
 
       {galleryOpen && (
