@@ -16,7 +16,6 @@ import {
 import { supabase } from "./supabase";
 
 const PASSWORD_KEY = "between_us_password";
-const POSTS_KEY = "between_us_posts";
 const SESSION_KEY = "between_us_session";
 
 const samplePosts = [
@@ -45,13 +44,13 @@ function formatDate(dateString) {
   }
 }
 
-function normalizeLegacyPosts(posts) {
-  return posts.map((post) => ({
+function normalizeDbPosts(posts) {
+  return (posts || []).map((post) => ({
     ...post,
     images: Array.isArray(post.images)
       ? post.images
-      : post.image
-      ? [post.image]
+      : typeof post.images === "string"
+      ? JSON.parse(post.images || "[]")
       : [],
   }));
 }
@@ -78,12 +77,30 @@ function ImageSlider({ images, title, onOpenGallery, isMobile }) {
         />
       )}
 
-      <div style={{ ...floatingBadgeRowStyle, left: isMobile ? 12 : 18, top: isMobile ? 12 : 18 }}>
-        <div style={{ ...badgeStyle, padding: isMobile ? "7px 10px" : "9px 13px", fontSize: isMobile ? 11 : 12 }}>
+      <div
+        style={{
+          ...floatingBadgeRowStyle,
+          left: isMobile ? 12 : 18,
+          top: isMobile ? 12 : 18,
+        }}
+      >
+        <div
+          style={{
+            ...badgeStyle,
+            padding: isMobile ? "7px 10px" : "9px 13px",
+            fontSize: isMobile ? 11 : 12,
+          }}
+        >
           <ImageIcon size={13} style={{ marginRight: 6 }} />
           {images.length} Photos
         </div>
-        <div style={{ ...badgeStyle, padding: isMobile ? "7px 10px" : "9px 13px", fontSize: isMobile ? 11 : 12 }}>
+        <div
+          style={{
+            ...badgeStyle,
+            padding: isMobile ? "7px 10px" : "9px 13px",
+            fontSize: isMobile ? 11 : 12,
+          }}
+        >
           <ZoomIn size={13} style={{ marginRight: 6 }} />
           Open Gallery
         </div>
@@ -93,14 +110,24 @@ function ImageSlider({ images, title, onOpenGallery, isMobile }) {
         <>
           <button
             onClick={prevSlide}
-            style={{ ...navBtnStyle, left: isMobile ? 10 : 18, width: isMobile ? 36 : 42, height: isMobile ? 36 : 42 }}
+            style={{
+              ...navBtnStyle,
+              left: isMobile ? 10 : 18,
+              width: isMobile ? 36 : 42,
+              height: isMobile ? 36 : 42,
+            }}
             type="button"
           >
             <ChevronLeft size={isMobile ? 18 : 20} />
           </button>
           <button
             onClick={nextSlide}
-            style={{ ...navBtnStyle, right: isMobile ? 10 : 18, width: isMobile ? 36 : 42, height: isMobile ? 36 : 42 }}
+            style={{
+              ...navBtnStyle,
+              right: isMobile ? 10 : 18,
+              width: isMobile ? 36 : 42,
+              height: isMobile ? 36 : 42,
+            }}
             type="button"
           >
             <ChevronRight size={isMobile ? 18 : 20} />
@@ -118,14 +145,22 @@ function ImageSlider({ images, title, onOpenGallery, isMobile }) {
                   borderRadius: 999,
                   border: "none",
                   background:
-                    index === currentIndex ? "#ffffff" : "rgba(255,255,255,0.45)",
+                    index === currentIndex
+                      ? "#ffffff"
+                      : "rgba(255,255,255,0.45)",
                   cursor: "pointer",
                 }}
               />
             ))}
           </div>
 
-          <div style={{ ...countStyle, bottom: isMobile ? 12 : 18, right: isMobile ? 12 : 18 }}>
+          <div
+            style={{
+              ...countStyle,
+              bottom: isMobile ? 12 : 18,
+              right: isMobile ? 12 : 18,
+            }}
+          >
             {currentIndex + 1} / {images.length}
           </div>
         </>
@@ -145,10 +180,14 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft") {
-        setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+        setCurrentIndex((prev) =>
+          prev === 0 ? images.length - 1 : prev - 1
+        );
       }
       if (e.key === "ArrowRight") {
-        setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+        setCurrentIndex((prev) =>
+          prev === images.length - 1 ? 0 : prev + 1
+        );
       }
     };
 
@@ -199,11 +238,20 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
           <img
             src={images[currentIndex]}
             alt={`${title} ${currentIndex + 1}`}
-            style={{ ...galleryMainImageStyle, maxHeight: isMobile ? "58vh" : "72vh" }}
+            style={{
+              ...galleryMainImageStyle,
+              maxHeight: isMobile ? "58vh" : "72vh",
+            }}
           />
         </div>
 
-        <div style={{ ...galleryBottomRowStyle, flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "center" }}>
+        <div
+          style={{
+            ...galleryBottomRowStyle,
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "flex-start" : "center",
+          }}
+        >
           <div style={{ color: "#ffffff" }}>
             <p style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{title}</p>
             <p
@@ -217,7 +265,12 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
             </p>
           </div>
 
-          <div style={{ ...galleryThumbRowStyle, maxWidth: isMobile ? "100%" : "65%" }}>
+          <div
+            style={{
+              ...galleryThumbRowStyle,
+              maxWidth: isMobile ? "100%" : "65%",
+            }}
+          >
             {images.map((img, index) => (
               <button
                 key={index}
@@ -291,55 +344,35 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const savedPassword = "ourmemory";
-    const savedPosts = localStorage.getItem(POSTS_KEY);
+    const savedPassword = localStorage.getItem(PASSWORD_KEY) || "ourmemory";
     const session = localStorage.getItem(SESSION_KEY) === "true";
 
     setPassword(savedPassword);
     setLoggedIn(session);
-
-    if (savedPosts) {
-      try {
-        setPosts(normalizeLegacyPosts(JSON.parse(savedPosts)));
-      } catch {
-        setPosts(samplePosts);
-      }
-    } else {
-      setPosts(samplePosts);
-      localStorage.setItem(POSTS_KEY, JSON.stringify(samplePosts));
-    }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-  }, [posts]);
+    async function loadPosts() {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("id", { ascending: false });
+
+      if (error) {
+        console.error("Failed to load posts:", error);
+        setPosts(samplePosts);
+        return;
+      }
+
+      setPosts(normalizeDbPosts(data));
+    }
+
+    loadPosts();
+  }, []);
 
   const sortedPosts = useMemo(() => {
     return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [posts]);
-
-  useEffect(() => {
-  async function loadPosts() {
-    const { data, error } = await supabase
-      .from("posts")
-      .select("*")
-      .order("id", { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    const formatted = (data || []).map((post) => ({
-      ...post,
-      images: post.images || [],
-    }));
-
-    setPosts(formatted);
-  }
-
-  loadPosts();
-}, []);
 
   const photoLibrary = useMemo(() => {
     return sortedPosts.flatMap((post) =>
@@ -388,21 +421,36 @@ export default function App() {
       });
   };
 
-  const handleAddPost = () => {
+  const handleAddPost = async () => {
     if (!title || !date || !text || imageFiles.length === 0) {
-      setError("Please fill in the title, date, photos, and text.");
+      setError("Please fill everything.");
       return;
     }
 
-    const newPost = {
-      id: Date.now(),
-      title,
-      date,
-      text,
-      images: imageFiles,
+    const { data, error } = await supabase
+      .from("posts")
+      .insert([
+        {
+          title,
+          text,
+          date,
+          images: imageFiles,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("Failed to save post:", error);
+      setError("Failed to save.");
+      return;
+    }
+
+    const savedPost = {
+      ...data[0],
+      images: Array.isArray(data[0].images) ? data[0].images : [],
     };
 
-    setPosts((prev) => [newPost, ...prev]);
+    setPosts((prev) => [savedPost, ...prev]);
     setTitle("");
     setDate("");
     setText("");
@@ -411,7 +459,14 @@ export default function App() {
     setActiveView("memories");
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
+    const { error } = await supabase.from("posts").delete().eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete post:", error);
+      return;
+    }
+
     setPosts((prev) => prev.filter((post) => post.id !== id));
   };
 
@@ -520,22 +575,28 @@ export default function App() {
                 <span>About this space</span>
               </div>
               <p style={loginInfoTextStyle}>
-                Created as a quiet archive for the moments that feel small in the day,
-                but stay with us for much longer.
+                Created as a quiet archive for the moments that feel small in
+                the day, but stay with us for much longer.
               </p>
               <div style={loginInfoListStyle}>
                 <div style={loginInfoItemStyle}>
                   <BookOpen size={16} />
                   <div>
                     <strong style={infoItemTitleStyle}>How to use</strong>
-                    <p style={infoItemTextStyle}>Write a memory, add photos, and keep each moment in one place.</p>
+                    <p style={infoItemTextStyle}>
+                      Write a memory, add photos, and keep each moment in one
+                      place.
+                    </p>
                   </div>
                 </div>
                 <div style={loginInfoItemStyle}>
                   <Heart size={16} />
                   <div>
                     <strong style={infoItemTitleStyle}>Why it exists</strong>
-                    <p style={infoItemTextStyle}>To give ordinary days a place to remain beautiful a little longer.</p>
+                    <p style={infoItemTextStyle}>
+                      To give ordinary days a place to remain beautiful a little
+                      longer.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -553,7 +614,9 @@ export default function App() {
                 <p style={loginSubStyle}>Enter your private space.</p>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}
+              >
                 <input
                   type="password"
                   placeholder="Enter password"
@@ -564,7 +627,11 @@ export default function App() {
                     if (e.key === "Enter") handleLogin();
                   }}
                 />
-                <button onClick={handleLogin} style={primaryBtnStyle} type="button">
+                <button
+                  onClick={handleLogin}
+                  style={primaryBtnStyle}
+                  type="button"
+                >
                   Enter
                 </button>
                 {error && <p style={errorTextStyle}>{error}</p>}
@@ -601,7 +668,11 @@ export default function App() {
               >
                 Change Password
               </button>
-              <button onClick={handleLogout} style={logoutBtnStyle} type="button">
+              <button
+                onClick={handleLogout}
+                style={logoutBtnStyle}
+                type="button"
+              >
                 Log Out
               </button>
             </div>
@@ -664,8 +735,8 @@ export default function App() {
                     <div style={softPanelStyle}>
                       <p style={softPanelTitleStyle}>Why this journal exists</p>
                       <p style={softPanelTextStyle}>
-                        A quiet place to hold the days that may seem ordinary now,
-                        but become beautiful when looked back on later.
+                        A quiet place to hold the days that may seem ordinary
+                        now, but become beautiful when looked back on later.
                       </p>
                     </div>
 
@@ -745,7 +816,9 @@ export default function App() {
                   <div style={panelWrapStyle}>
                     <div style={panelHeaderStyle}>
                       <h3 style={libraryTitleHeadingStyle}>Memory Notes</h3>
-                      <span style={libraryCountStyle}>{sortedPosts.length} notes</span>
+                      <span style={libraryCountStyle}>
+                        {sortedPosts.length} notes
+                      </span>
                     </div>
 
                     {sortedPosts.length > 0 ? (
@@ -753,7 +826,9 @@ export default function App() {
                         {sortedPosts.map((post) => (
                           <div key={`note-${post.id}`} style={noteCardStyle}>
                             <div style={noteTitleStyle}>{post.title}</div>
-                            <div style={noteDateStyle}>{formatDate(post.date)}</div>
+                            <div style={noteDateStyle}>
+                              {formatDate(post.date)}
+                            </div>
                             <div style={notePreviewStyle}>{post.text}</div>
                           </div>
                         ))}
@@ -782,16 +857,23 @@ export default function App() {
                             key={`${photo.postId}-${photo.imageIndex}-${index}`}
                             type="button"
                             onClick={() =>
-                              openGallery(photo.images, photo.imageIndex, photo.title)
+                              openGallery(
+                                photo.images,
+                                photo.imageIndex,
+                                photo.title
+                              )
                             }
                             style={libraryCardStyle}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = "translateY(-4px)";
-                              e.currentTarget.style.boxShadow = "0 18px 30px rgba(79,111,173,0.12)";
+                              e.currentTarget.style.transform =
+                                "translateY(-4px)";
+                              e.currentTarget.style.boxShadow =
+                                "0 18px 30px rgba(79,111,173,0.12)";
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.transform = "translateY(0)";
-                              e.currentTarget.style.boxShadow = "0 12px 24px rgba(79,111,173,0.08)";
+                              e.currentTarget.style.boxShadow =
+                                "0 12px 24px rgba(79,111,173,0.08)";
                             }}
                           >
                             <img
@@ -831,8 +913,7 @@ export default function App() {
                 >
                   Add New
                 </button>
-              </div>
-
+              </div>              
               {sortedPosts.map((post) => (
                 <div
                   key={post.id}
@@ -840,12 +921,14 @@ export default function App() {
                   onMouseEnter={(e) => {
                     if (!isMobile) {
                       e.currentTarget.style.transform = "translateY(-4px)";
-                      e.currentTarget.style.boxShadow = "0 28px 48px rgba(79,111,173,0.12)";
+                      e.currentTarget.style.boxShadow =
+                        "0 28px 48px rgba(79,111,173,0.12)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 22px 42px rgba(79, 111, 173, 0.08)";
+                    e.currentTarget.style.boxShadow =
+                      "0 22px 42px rgba(79, 111, 173, 0.08)";
                   }}
                 >
                   <div style={responsivePostGridStyle}>
@@ -857,7 +940,13 @@ export default function App() {
                     />
 
                     <div style={responsivePostBodyStyle}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 16,
+                        }}
+                      >
                         <div
                           style={{
                             display: "flex",
@@ -1048,7 +1137,8 @@ const quoteStyle = {
 const softPanelStyle = {
   borderRadius: 20,
   padding: 16,
-  background: "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(239,245,255,0.78))",
+  background:
+    "linear-gradient(135deg, rgba(255,255,255,0.82), rgba(239,245,255,0.78))",
   border: "1px solid rgba(219,230,245,0.95)",
 };
 
