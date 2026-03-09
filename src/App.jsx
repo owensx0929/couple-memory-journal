@@ -88,10 +88,18 @@ function ImageSlider({ images, title, onOpenGallery }) {
 
       {images.length > 1 && (
         <>
-          <button onClick={prevSlide} style={{ ...navBtnStyle, left: 18 }} type="button">
+          <button
+            onClick={prevSlide}
+            style={{ ...navBtnStyle, left: 18 }}
+            type="button"
+          >
             <ChevronLeft size={20} />
           </button>
-          <button onClick={nextSlide} style={{ ...navBtnStyle, right: 18 }} type="button">
+          <button
+            onClick={nextSlide}
+            style={{ ...navBtnStyle, right: 18 }}
+            type="button"
+          >
             <ChevronRight size={20} />
           </button>
 
@@ -106,7 +114,10 @@ function ImageSlider({ images, title, onOpenGallery }) {
                   height: 10,
                   borderRadius: 999,
                   border: "none",
-                  background: index === currentIndex ? "#ffffff" : "rgba(255,255,255,0.45)",
+                  background:
+                    index === currentIndex
+                      ? "#ffffff"
+                      : "rgba(255,255,255,0.45)",
                   cursor: "pointer",
                 }}
               />
@@ -158,14 +169,24 @@ function GalleryModal({ images, initialIndex, title, onClose }) {
 
   return (
     <div style={modalOverlayStyle}>
-      <button onClick={onClose} style={{ ...circleBtnStyle, top: 20, right: 20, position: "absolute" }} type="button">
+      <button
+        onClick={onClose}
+        style={{ ...circleBtnStyle, top: 20, right: 20, position: "absolute" }}
+        type="button"
+      >
         <X size={20} />
       </button>
 
       {images.length > 1 && (
         <button
           onClick={prev}
-          style={{ ...circleBtnStyle, left: 20, top: "50%", position: "absolute", transform: "translateY(-50%)" }}
+          style={{
+            ...circleBtnStyle,
+            left: 20,
+            top: "50%",
+            position: "absolute",
+            transform: "translateY(-50%)",
+          }}
           type="button"
         >
           <ChevronLeft size={24} />
@@ -184,7 +205,13 @@ function GalleryModal({ images, initialIndex, title, onClose }) {
         <div style={galleryBottomRowStyle}>
           <div style={{ color: "#ffffff" }}>
             <p style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>{title}</p>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", margin: "4px 0 0" }}>
+            <p
+              style={{
+                fontSize: 14,
+                color: "rgba(255,255,255,0.72)",
+                margin: "4px 0 0",
+              }}
+            >
               {currentIndex + 1} / {images.length}
             </p>
           </div>
@@ -199,7 +226,10 @@ function GalleryModal({ images, initialIndex, title, onClose }) {
                   flexShrink: 0,
                   overflow: "hidden",
                   borderRadius: 14,
-                  border: index === currentIndex ? "2px solid white" : "2px solid transparent",
+                  border:
+                    index === currentIndex
+                      ? "2px solid white"
+                      : "2px solid transparent",
                   padding: 0,
                   background: "transparent",
                   cursor: "pointer",
@@ -215,7 +245,13 @@ function GalleryModal({ images, initialIndex, title, onClose }) {
       {images.length > 1 && (
         <button
           onClick={next}
-          style={{ ...circleBtnStyle, right: 20, top: "50%", position: "absolute", transform: "translateY(-50%)" }}
+          style={{
+            ...circleBtnStyle,
+            right: 20,
+            top: "50%",
+            position: "absolute",
+            transform: "translateY(-50%)",
+          }}
           type="button"
         >
           <ChevronRight size={24} />
@@ -242,7 +278,7 @@ export default function App() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [galleryTitle, setGalleryTitle] = useState("");
 
-  const [activeTab, setActiveTab] = useState("write");
+  const [activeView, setActiveView] = useState("write");
 
   useEffect(() => {
     const savedPassword = localStorage.getItem(PASSWORD_KEY) || "ourmemory";
@@ -339,7 +375,7 @@ export default function App() {
     setText("");
     setImageFiles([]);
     setError("");
-    setActiveTab("photos");
+    setActiveView("memories");
   };
 
   const handleDelete = (id) => {
@@ -374,31 +410,13 @@ export default function App() {
         <div style={ambientGlowTwoStyle} />
 
         <div style={containerStyle}>
-          <div style={loginWrapStyle}>
-            <div>
+          <div style={loginSingleWrapStyle}>
+            <div style={loginHeroStyle}>
               <div style={topBadgeStyle}>Private Memory Archive</div>
-
-              <div style={{ marginTop: 18 }}>
-                <h1 style={heroTitleStyle}>Between Us</h1>
-                <p style={heroDescStyle}>
-                  A place to keep even the smallest moments.
-                </p>
-              </div>
-
-              <div style={featureGridStyle}>
-                <div style={featureCardStyle}>
-                  <Heart size={20} style={{ marginBottom: 8 }} />
-                  <p style={featureTextStyle}>Meaningful Memories</p>
-                </div>
-                <div style={featureCardStyle}>
-                  <Lock size={20} style={{ marginBottom: 8 }} />
-                  <p style={featureTextStyle}>Private Access</p>
-                </div>
-                <div style={featureCardStyle}>
-                  <ImageIcon size={20} style={{ marginBottom: 8 }} />
-                  <p style={featureTextStyle}>Photo Journal</p>
-                </div>
-              </div>
+              <h1 style={heroTitleStyle}>Between Us</h1>
+              <p style={heroDescStyle}>
+                A place to keep even the smallest moments.
+              </p>
             </div>
 
             <div style={loginCardStyle}>
@@ -417,15 +435,14 @@ export default function App() {
                   value={loginInput}
                   onChange={(e) => setLoginInput(e.target.value)}
                   style={inputStyle}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleLogin();
+                  }}
                 />
                 <button onClick={handleLogin} style={primaryBtnStyle} type="button">
                   Enter
                 </button>
                 {error && <p style={errorTextStyle}>{error}</p>}
-              </div>
-
-              <div style={hintBoxStyle}>
-                Default password: <strong>ourmemory</strong>
               </div>
             </div>
           </div>
@@ -451,7 +468,11 @@ export default function App() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={handleSetPassword} style={secondaryBtnStyle} type="button">
+              <button
+                onClick={handleSetPassword}
+                style={secondaryBtnStyle}
+                type="button"
+              >
                 Change Password
               </button>
               <button onClick={handleLogout} style={logoutBtnStyle} type="button">
@@ -465,29 +486,54 @@ export default function App() {
               <div style={formCardStyle}>
                 <div style={sectionHeaderRowStyle}>
                   <div>
-                    <p style={smallLabelStyle}>New Entry</p>
-                    <h2 style={sectionTitleStyle}>Add a Memory</h2>
+                    <p style={smallLabelStyle}>Journal Space</p>
+                    <h2 style={sectionTitleStyle}>
+                      {activeView === "write"
+                        ? "Write a Memory"
+                        : activeView === "memories"
+                        ? "Memory Notes"
+                        : "Photo Library"}
+                    </h2>
                   </div>
 
                   <div style={tabSwitchStyle}>
                     <button
                       type="button"
-                      onClick={() => setActiveTab("write")}
-                      style={activeTab === "write" ? activeTabBtnActiveStyle : activeTabBtnStyle}
+                      onClick={() => setActiveView("write")}
+                      style={
+                        activeView === "write"
+                          ? activeTabBtnActiveStyle
+                          : activeTabBtnStyle
+                      }
                     >
                       Write
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActiveTab("photos")}
-                      style={activeTab === "photos" ? activeTabBtnActiveStyle : activeTabBtnStyle}
+                      onClick={() => setActiveView("memories")}
+                      style={
+                        activeView === "memories"
+                          ? activeTabBtnActiveStyle
+                          : activeTabBtnStyle
+                      }
+                    >
+                      Notes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveView("photos")}
+                      style={
+                        activeView === "photos"
+                          ? activeTabBtnActiveStyle
+                          : activeTabBtnStyle
+                      }
                     >
                       Photos
                     </button>
                   </div>
                 </div>
 
-                {activeTab === "write" ? (
+                {activeView === "write" && (
                   <>
                     <input
                       placeholder="Title"
@@ -540,24 +586,59 @@ export default function App() {
                       style={textareaStyle}
                     />
 
-                    <button onClick={handleAddPost} style={primaryBtnStyle} type="button">
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <button
+                      onClick={handleAddPost}
+                      style={primaryBtnStyle}
+                      type="button"
+                    >
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
                         <Plus size={16} />
                         Save Memory
                       </span>
                     </button>
 
                     {error && <p style={errorTextStyle}>{error}</p>}
-
-                    <div style={hintSoftStyle}>
-                      This version is saved in your browser as a prototype.
-                    </div>
                   </>
-                ) : (
+                )}
+
+                {activeView === "memories" && (
+                  <div style={panelWrapStyle}>
+                    <div style={panelHeaderStyle}>
+                      <h3 style={libraryTitleHeadingStyle}>Memory Notes</h3>
+                      <span style={libraryCountStyle}>{sortedPosts.length} notes</span>
+                    </div>
+
+                    {sortedPosts.length > 0 ? (
+                      <div style={notesListStyle}>
+                        {sortedPosts.map((post) => (
+                          <div key={`note-${post.id}`} style={noteCardStyle}>
+                            <div style={noteTitleStyle}>{post.title}</div>
+                            <div style={noteDateStyle}>{formatDate(post.date)}</div>
+                            <div style={notePreviewStyle}>{post.text}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={emptyLibraryStyle}>
+                        No notes yet. Add your first memory.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeView === "photos" && (
                   <div style={photoLibraryStyle}>
                     <div style={libraryHeaderStyle}>
                       <h3 style={libraryTitleHeadingStyle}>Photo Library</h3>
-                      <span style={libraryCountStyle}>{photoLibrary.length} photos</span>
+                      <span style={libraryCountStyle}>
+                        {photoLibrary.length} photos
+                      </span>
                     </div>
 
                     {photoLibrary.length > 0 ? (
@@ -571,10 +652,16 @@ export default function App() {
                             }
                             style={libraryCardStyle}
                           >
-                            <img src={photo.image} alt={photo.title} style={libraryImageStyle} />
+                            <img
+                              src={photo.image}
+                              alt={photo.title}
+                              style={libraryImageStyle}
+                            />
                             <div style={libraryMetaStyle}>
                               <div style={libraryTitleStyle}>{photo.title}</div>
-                              <div style={libraryDateStyle}>{formatDate(photo.date)}</div>
+                              <div style={libraryDateStyle}>
+                                {formatDate(photo.date)}
+                              </div>
                             </div>
                           </button>
                         ))}
@@ -597,7 +684,7 @@ export default function App() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setActiveTab("write")}
+                  onClick={() => setActiveView("write")}
                   style={secondaryBtnStyle}
                 >
                   Add New
@@ -644,8 +731,8 @@ export default function App() {
                       </div>
 
                       <div style={savedRowStyle}>
-                        <Heart size={16} fill="currentColor" />
-                        <span>Saved in our archive</span>
+                        <Heart size={14} fill="currentColor" />
+                        <span>Saved in archive</span>
                       </div>
                     </div>
                   </div>
@@ -653,7 +740,9 @@ export default function App() {
               ))}
 
               {sortedPosts.length === 0 && (
-                <div style={emptyLibraryStyle}>No memories yet. Start with your first entry.</div>
+                <div style={emptyLibraryStyle}>
+                  No memories yet. Start with your first entry.
+                </div>
               )}
             </div>
           </div>
@@ -676,7 +765,8 @@ const pageStyle = {
   minHeight: "100vh",
   position: "relative",
   overflow: "hidden",
-  background: "linear-gradient(180deg, #f4f7fb 0%, #eef2f7 35%, #e9edf3 70%, #f8fafc 100%)",
+  background:
+    "linear-gradient(180deg, #f4f7fb 0%, #eef2f7 35%, #e9edf3 70%, #f8fafc 100%)",
   color: "#2b2230",
 };
 
@@ -685,7 +775,7 @@ const ambientGlowOneStyle = {
   width: 420,
   height: 420,
   borderRadius: "50%",
-  background: "rgba(170, 190, 230, 0.22)",
+  background: "rgba(170, 190, 230, 0.18)",
   filter: "blur(80px)",
   top: -80,
   left: -90,
@@ -697,7 +787,7 @@ const ambientGlowTwoStyle = {
   width: 360,
   height: 360,
   borderRadius: "50%",
-  background: "rgba(170, 200, 210, 0.24)",
+  background: "rgba(170, 200, 210, 0.18)",
   filter: "blur(80px)",
   bottom: -60,
   right: -50,
@@ -712,76 +802,62 @@ const containerStyle = {
   zIndex: 1,
 };
 
-const loginWrapStyle = {
+const loginSingleWrapStyle = {
   minHeight: "88vh",
-  display: "grid",
-  gridTemplateColumns: "1.06fr 0.94fr",
-  gap: 34,
-  alignItems: "center",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  gap: 28,
+  maxWidth: 720,
+};
+
+const loginHeroStyle = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 14,
 };
 
 const topBadgeStyle = {
   display: "inline-block",
   padding: "9px 16px",
   borderRadius: 999,
-  background: "rgba(255,255,255,0.75)",
+  background: "rgba(255,255,255,0.72)",
   border: "1px solid rgba(255,255,255,0.9)",
   fontSize: 13,
   letterSpacing: "0.18em",
   color: "#5f6f8a",
   fontWeight: 600,
   backdropFilter: "blur(10px)",
+  width: "fit-content",
 };
 
 const heroTitleStyle = {
-  fontSize: 86,
-  lineHeight: 1,
+  fontSize: 108,
+  lineHeight: 0.95,
   fontWeight: 700,
-  margin: "0 0 18px",
+  margin: 0,
   color: "#2f3e5c",
   fontFamily: "Playfair Display, serif",
   letterSpacing: "0.02em",
 };
 
 const heroDescStyle = {
-  maxWidth: 630,
-  fontSize: 20,
-  lineHeight: 1.9,
+  maxWidth: 680,
+  fontSize: 24,
+  lineHeight: 1.6,
   color: "#5d6f8c",
   margin: 0,
   fontFamily: "Inter, sans-serif",
 };
 
-const featureGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-  gap: 14,
-  marginTop: 28,
-};
-
-const featureCardStyle = {
-  borderRadius: 26,
-  border: "1px solid rgba(255,255,255,0.82)",
-  background: "rgba(255,255,255,0.64)",
-  boxShadow: "0 18px 34px rgba(79, 111, 173, 0.08)",
-  backdropFilter: "blur(16px)",
-  padding: 20,
-  color: "#5c6f8f",
-};
-
-const featureTextStyle = {
-  margin: 0,
-  fontSize: 14,
-  fontWeight: 600,
-};
-
 const loginCardStyle = {
   borderRadius: 34,
   border: "1px solid rgba(255,255,255,0.82)",
-  background: "rgba(255,255,255,0.72)",
+  background: "rgba(255,255,255,0.68)",
   boxShadow: "0 28px 60px rgba(79, 111, 173, 0.10)",
   backdropFilter: "blur(18px)",
   padding: 34,
+  maxWidth: 540,
 };
 
 const lockCircleStyle = {
@@ -874,16 +950,6 @@ const errorTextStyle = {
   margin: 0,
 };
 
-const hintBoxStyle = {
-  borderRadius: 18,
-  background: "rgba(236, 240, 248, 0.95)",
-  padding: 16,
-  fontSize: 14,
-  lineHeight: 1.7,
-  color: "#5d6f8c",
-  marginTop: 16,
-};
-
 const headerCardStyle = {
   display: "flex",
   flexWrap: "wrap",
@@ -892,7 +958,7 @@ const headerCardStyle = {
   justifyContent: "space-between",
   borderRadius: 34,
   border: "1px solid rgba(255,255,255,0.85)",
-  background: "rgba(255,255,255,0.70)",
+  background: "rgba(255,255,255,0.68)",
   padding: 28,
   boxShadow: "0 20px 40px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
@@ -933,7 +999,7 @@ const formCardStyle = {
   top: 24,
   borderRadius: 34,
   border: "1px solid rgba(255,255,255,0.85)",
-  background: "rgba(255,255,255,0.74)",
+  background: "rgba(255,255,255,0.72)",
   boxShadow: "0 20px 40px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
   padding: 26,
@@ -969,6 +1035,7 @@ const tabSwitchStyle = {
   padding: 6,
   borderRadius: 999,
   background: "rgba(230, 237, 248, 0.9)",
+  flexWrap: "wrap",
 };
 
 const activeTabBtnStyle = {
@@ -1032,13 +1099,56 @@ const previewImageStyle = {
   border: "1px solid rgba(219, 230, 245, 0.95)",
 };
 
-const hintSoftStyle = {
+const panelWrapStyle = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 14,
+};
+
+const panelHeaderStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 10,
+};
+
+const notesListStyle = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 12,
+};
+
+const noteCardStyle = {
+  border: "1px solid rgba(219, 230, 245, 0.95)",
+  background: "rgba(255,255,255,0.98)",
   borderRadius: 18,
-  background: "linear-gradient(135deg, rgba(232,238,250,0.95), rgba(240,245,255,0.95))",
   padding: 16,
-  fontSize: 14,
+  textAlign: "left",
+  boxShadow: "0 12px 24px rgba(79,111,173,0.06)",
+};
+
+const noteTitleStyle = {
+  fontSize: 16,
+  fontWeight: 700,
+  color: "#2f3e5c",
+  marginBottom: 6,
+  fontFamily: "Playfair Display, serif",
+};
+
+const noteDateStyle = {
+  fontSize: 12,
+  color: "#6b7f9d",
+  marginBottom: 8,
+};
+
+const notePreviewStyle = {
+  fontSize: 13,
+  color: "#5c6f8f",
   lineHeight: 1.7,
-  color: "#5d6f8c",
+  display: "-webkit-box",
+  WebkitLineClamp: 3,
+  WebkitBoxOrient: "vertical",
+  overflow: "hidden",
 };
 
 const photoLibraryStyle = {
@@ -1085,6 +1195,7 @@ const libraryCardStyle = {
   padding: 0,
   textAlign: "left",
   boxShadow: "0 12px 24px rgba(79,111,173,0.08)",
+  transition: "transform 0.2s ease, box-shadow 0.2s ease",
 };
 
 const libraryImageStyle = {
@@ -1141,6 +1252,7 @@ const postCardStyle = {
   background: "rgba(255,255,255,0.74)",
   boxShadow: "0 22px 42px rgba(79, 111, 173, 0.08)",
   backdropFilter: "blur(18px)",
+  transition: "transform 0.22s ease, box-shadow 0.22s ease",
 };
 
 const postGridStyle = {
@@ -1153,7 +1265,8 @@ const postBodyStyle = {
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.66), rgba(248,251,255,0.56))",
+  background:
+    "linear-gradient(180deg, rgba(255,255,255,0.66), rgba(248,251,255,0.56))",
 };
 
 const postTitleStyle = {
@@ -1192,11 +1305,11 @@ const iconGhostBtnStyle = {
 };
 
 const savedRowStyle = {
-  marginTop: 24,
+  marginTop: 18,
   display: "flex",
   alignItems: "center",
-  gap: 8,
-  fontSize: 14,
+  gap: 6,
+  fontSize: 12,
   color: "#4f6fad",
 };
 
