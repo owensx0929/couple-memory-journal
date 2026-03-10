@@ -14,7 +14,6 @@ import {
   BookOpen,
   Sparkles,
 } from "lucide-react";
-import { supabase } from "./supabase";
 
 const PASSWORD_KEY = "between_us_password";
 const SESSION_KEY = "between_us_session";
