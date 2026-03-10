@@ -442,46 +442,41 @@ const handleLogin = async () => {
       });
   };
 
-  const handleAddPost = async () => {
-    console.log("save clicked");
+const handleAddPost = async () => {
+  const newPost = {
+    title,
+    text,
+    date,
+    images: JSON.stringify(imageFiles),
+  };
 
-  if (!title || !date || !text) {
-    setError("Please fill everything.");
+  const { data, error } = await supabase
+    .from("posts")
+    .insert([newPost])
+    .select();
+
+  console.log("save result:", data, error);
+
+  if (error) {
+    console.log(error);
+    setError("저장 실패");
     return;
   }
-    const { data, error } = await supabase
-      .from("posts")
-      .insert([
-        {
-          title,
-          text,
-          date,
-          images: parsedImages,
-        },
-      ])
-      .select();
 
-    console.log("supabase result", data, error);
-
-    if (error) {
-      console.error("Failed to save post:", error);
-      setError("Failed to save.");
-      return;
-    }
-
-    const savedPost = {
-      ...data[0],
-      images: Array.isArray(data[0].images) ? data[0].images : [],
-    };
-
-    setPosts((prev) => [savedPost, ...prev]);
-    setTitle("");
-    setDate("");
-    setText("");
-    setImageFiles([]);
-    setError("");
-    setActiveView("memories");
+  const savedPost = {
+    ...data[0],
+    images: Array.isArray(data[0].images)
+      ? data[0].images
+      : JSON.parse(data[0].images || "[]"),
   };
+
+  setPosts((prev) => [savedPost, ...prev]);
+  setTitle("");
+  setDate("");
+  setText("");
+  setImageFiles([]);
+  setError("");
+};
 
   const handleDelete = async (id) => {
     const { error } = await supabase.from("posts").delete().eq("id", id);
