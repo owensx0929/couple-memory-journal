@@ -359,9 +359,10 @@ export default function App() {
   useEffect(() => {
     async function loadPosts() {
       const { data, error } = await supabase
-        .from("posts")
-        .select("*")
-        .order("id", { ascending: false });
+        .from("settings")
+        .select("password")
+        .eq("id", 1)
+        .single();
 
       if (error) {
         console.error("Failed to load posts:", error);
@@ -408,7 +409,7 @@ const handleLogin = async () => {
     return;
   }
 
-  if (loginInput === data.password) {
+  if (loginInput.trim() === data.password.trim()) {
     setLoggedIn(true);
     localStorage.setItem("loggedIn", "true");
     setError("");
