@@ -460,35 +460,70 @@ export default function App() {
     }
   };
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
+const handleImageUpload = async (e) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
 
-    Promise.all(
+  try {
+    const resizedImages = await Promise.all(
       files.map(
         (file) =>
           new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
+
+            reader.onload = () => {
+              const img = new Image();
+
+              img.onload = () => {
+                const maxWidth = 1400;
+                const maxHeight = 1400;
+
+                let { width, height } = img;
+
+                if (width > maxWidth || height > maxHeight) {
+                  const ratio = Math.min(maxWidth / width, maxHeight / height);
+                  width = Math.round(width * ratio);
+                  height = Math.round(height * ratio);
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext("2d");
+                if (!ctx) {
+                  reject(new Error("Canvas error"));
+                  return;
+                }
+
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const compressed = canvas.toDataURL("image/jpeg", 0.75);
+                resolve(compressed);
+              };
+
+              img.onerror = reject;
+              img.src = reader.result;
+            };
+
             reader.onerror = reject;
             reader.readAsDataURL(file);
           })
       )
-    )
-      .then((images) => {
-        setImageFiles(images);
-        setError("");
-      })
-      .catch(() => {
-        setError("Failed to load images.");
-      });
-  };
+    );
 
-const handleAddPost = async () => {
-  if (!title.trim() || !date || !text.trim()) {
-    setError("제목, 날짜, 내용을 모두 입력해줘.");
-    return;
+    setImageFiles(resizedImages);
+    setError("");
+  } catch (err) {
+    console.error(err);
+    setError("Failed to load images.");
   }
+};
+  const handleAddPost = async () => {
+    if (!title.trim() || !date || !text.trim()) {
+      setError("제목, 날짜, 내용을 모두 입력해줘.");
+      return;
+    }
 
   const newPost = {
     title: title.trim(),
@@ -497,27 +532,32 @@ const handleAddPost = async () => {
     images: imageFiles,
   };
 
-  const { data, error } = await supabase
-    .from("posts")
-    .insert([newPost])
-    .select();
+    const { data, error } = await supabase
+      .from("posts")
+      .insert([newPost])
+      .select();
 
-  if (error) {
-    console.error("save error:", error);
-    setError("저장 실패");
-    return;
-  }
+    if (error) {
+      console.error("save error:", error);
+      setError("저장 실패");
+      return;
+    }
 
-  const savedPost = normalizeDbPosts(data)[0];
-
-  setPosts((prev) => [savedPost, ...prev]);
-  setTitle("");
-  setDate("");
-  setText("");
-  setImageFiles([]);
-  setError("");
-  setActiveView("memories");
+const savedPost = {
+  ...data[0],
+  images: Array.isArray(data[0].images)
+    ? data[0].images
+    : [],
 };
+
+    setPosts((prev) => [savedPost, ...prev]);
+    setTitle("");
+    setDate("");
+    setText("");
+    setImageFiles([]);
+    setError("");
+    setActiveView("memories");
+  };
 
   const handleDelete = async (id) => {
     const ok = window.confirm("이 글을 삭제할까?");
