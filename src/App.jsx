@@ -456,7 +456,7 @@ const handleLogin = async () => {
           title,
           text,
           date,
-          images: imageFiles,
+          images: parsedImages,
         },
       ])
       .select();
