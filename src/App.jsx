@@ -1,3 +1,4 @@
+import { supabase } from "./supabase";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Heart,
@@ -401,8 +402,11 @@ const handleLogin = async () => {
     .eq("id", 1)
     .single();
 
+  console.log("DB password:", data);
+
   if (error) {
-    console.log("DB error:", error);
+    console.log("error:", error);
+    alert("DB error");
     return;
   }
 
