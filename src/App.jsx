@@ -51,10 +51,12 @@ function normalizeDbPosts(posts) {
       parsedImages = post.images;
     } else if (typeof post.images === "string") {
       try {
-        parsedImages = JSON.parse(post.images || "[]");
+        parsedImages = JSON.parse(post.images);
       } catch {
         parsedImages = [];
       }
+    } else {
+      parsedImages = [];
     }
 
     return {
@@ -482,45 +484,40 @@ export default function App() {
       });
   };
 
-  const handleAddPost = async () => {
-    if (!title.trim() || !date || !text.trim()) {
-      setError("제목, 날짜, 내용을 모두 입력해줘.");
-      return;
-    }
+const handleAddPost = async () => {
+  if (!title.trim() || !date || !text.trim()) {
+    setError("제목, 날짜, 내용을 모두 입력해줘.");
+    return;
+  }
 
-    const newPost = {
-      title: title.trim(),
-      text: text.trim(),
-      date,
-      images: JSON.stringify(imageFiles),
-    };
-
-    const { data, error } = await supabase
-      .from("posts")
-      .insert([newPost])
-      .select();
-
-    if (error) {
-      console.error("save error:", error);
-      setError("저장 실패");
-      return;
-    }
-
-    const savedPost = {
-      ...data[0],
-      images: Array.isArray(data[0].images)
-        ? data[0].images
-        : JSON.parse(data[0].images || "[]"),
-    };
-
-    setPosts((prev) => [savedPost, ...prev]);
-    setTitle("");
-    setDate("");
-    setText("");
-    setImageFiles([]);
-    setError("");
-    setActiveView("memories");
+  const newPost = {
+    title: title.trim(),
+    text: text.trim(),
+    date,
+    images: imageFiles,
   };
+
+  const { data, error } = await supabase
+    .from("posts")
+    .insert([newPost])
+    .select();
+
+  if (error) {
+    console.error("save error:", error);
+    setError("저장 실패");
+    return;
+  }
+
+  const savedPost = normalizeDbPosts(data)[0];
+
+  setPosts((prev) => [savedPost, ...prev]);
+  setTitle("");
+  setDate("");
+  setText("");
+  setImageFiles([]);
+  setError("");
+  setActiveView("memories");
+};
 
   const handleDelete = async (id) => {
     const ok = window.confirm("이 글을 삭제할까?");
