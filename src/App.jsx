@@ -15,7 +15,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const PASSWORD_KEY = "between_us_password";
 const SESSION_KEY = "between_us_session";
 
 const samplePosts = [
@@ -45,18 +44,34 @@ function formatDate(dateString) {
 }
 
 function normalizeDbPosts(posts) {
-  return (posts || []).map((post) => ({
-    ...post,
-    images: Array.isArray(post.images)
-      ? post.images
-      : typeof post.images === "string"
-      ? JSON.parse(post.images || "[]")
-      : [],
-  }));
+  return (posts || []).map((post) => {
+    let parsedImages = [];
+
+    if (Array.isArray(post.images)) {
+      parsedImages = post.images;
+    } else if (typeof post.images === "string") {
+      try {
+        parsedImages = JSON.parse(post.images || "[]");
+      } catch {
+        parsedImages = [];
+      }
+    }
+
+    return {
+      ...post,
+      images: parsedImages,
+    };
+  });
 }
 
 function ImageSlider({ images, title, onOpenGallery, isMobile }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [images]);
+
+  const hasImages = images.length > 0;
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -66,16 +81,32 @@ function ImageSlider({ images, title, onOpenGallery, isMobile }) {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  if (!hasImages) {
+    return (
+      <div
+        style={{
+          ...sliderWrapStyle,
+          minHeight: isMobile ? 280 : 360,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#6b7f9d",
+          fontSize: 14,
+        }}
+      >
+        No photos
+      </div>
+    );
+  }
+
   return (
     <div style={{ ...sliderWrapStyle, minHeight: isMobile ? 280 : 360 }}>
-      {images.length > 0 && (
-        <img
-          src={images[currentIndex]}
-          alt={`${title} ${currentIndex + 1}`}
-          style={{ ...sliderImageStyle, minHeight: isMobile ? 280 : 360 }}
-          onClick={() => onOpenGallery(images, currentIndex, title)}
-        />
-      )}
+      <img
+        src={images[currentIndex]}
+        alt={`${title} ${currentIndex + 1}`}
+        style={{ ...sliderImageStyle, minHeight: isMobile ? 280 : 360 }}
+        onClick={() => onOpenGallery(images, currentIndex, title)}
+      />
 
       <div
         style={{
@@ -120,6 +151,7 @@ function ImageSlider({ images, title, onOpenGallery, isMobile }) {
           >
             <ChevronLeft size={isMobile ? 18 : 20} />
           </button>
+
           <button
             onClick={nextSlide}
             style={{
@@ -177,22 +209,13 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
   }, [initialIndex]);
 
   useEffect(() => {
-    const session = localStorage.getItem("loggedIn") === "true";
-    setLoggedIn(session);
-  }, []);
-
-  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft") {
-        setCurrentIndex((prev) =>
-          prev === 0 ? images.length - 1 : prev - 1
-        );
+        setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
       }
       if (e.key === "ArrowRight") {
-        setCurrentIndex((prev) =>
-          prev === images.length - 1 ? 0 : prev + 1
-        );
+        setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
       }
     };
 
@@ -349,20 +372,36 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const savedPassword = localStorage.getItem(PASSWORD_KEY) || "ourmemory";
     const session = localStorage.getItem(SESSION_KEY) === "true";
-
-    setPassword(savedPassword);
     setLoggedIn(session);
   }, []);
 
   useEffect(() => {
-    async function loadPosts() {
+    async function loadPassword() {
       const { data, error } = await supabase
         .from("settings")
         .select("password")
         .eq("id", 1)
         .single();
+
+      if (error) {
+        console.error("Failed to load password:", error);
+        return;
+      }
+
+      setPassword(data?.password || "");
+    }
+
+    loadPassword();
+  }, []);
+
+  useEffect(() => {
+    async function loadPosts() {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("date", { ascending: false })
+        .order("id", { ascending: false });
 
       if (error) {
         console.error("Failed to load posts:", error);
@@ -377,7 +416,11 @@ export default function App() {
   }, []);
 
   const sortedPosts = useMemo(() => {
-    return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
+    return [...posts].sort((a, b) => {
+      const dateDiff = new Date(b.date) - new Date(a.date);
+      if (dateDiff !== 0) return dateDiff;
+      return b.id - a.id;
+    });
   }, [posts]);
 
   const photoLibrary = useMemo(() => {
@@ -393,30 +436,27 @@ export default function App() {
     );
   }, [sortedPosts]);
 
-const handleLogin = async () => {
-  const { data, error } = await supabase
-    .from("settings")
-    .select("password")
-    .eq("id", 1)
-    .single();
+  const handleLogin = async () => {
+    const { data, error } = await supabase
+      .from("settings")
+      .select("password")
+      .eq("id", 1)
+      .single();
 
-  console.log("typed:", loginInput);
-  console.log("db:", data?.password);
+    if (error) {
+      console.error("DB error:", error);
+      setError("비밀번호를 불러오지 못했어요.");
+      return;
+    }
 
-  if (error) {
-    console.log("DB error:", error);
-    alert("DB error");
-    return;
-  }
-
-  if (loginInput.trim() === data.password.trim()) {
-    setLoggedIn(true);
-    localStorage.setItem("loggedIn", "true");
-    setError("");
-  } else {
-    setError("Wrong password");
-  }
-};
+    if (loginInput.trim() === (data?.password || "").trim()) {
+      setLoggedIn(true);
+      localStorage.setItem(SESSION_KEY, "true");
+      setError("");
+    } else {
+      setError("Wrong password");
+    }
+  };
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files || []);
@@ -442,47 +482,55 @@ const handleLogin = async () => {
       });
   };
 
-const handleAddPost = async () => {
-  const newPost = {
-    title,
-    text,
-    date,
-    images: JSON.stringify(imageFiles),
+  const handleAddPost = async () => {
+    if (!title.trim() || !date || !text.trim()) {
+      setError("제목, 날짜, 내용을 모두 입력해줘.");
+      return;
+    }
+
+    const newPost = {
+      title: title.trim(),
+      text: text.trim(),
+      date,
+      images: JSON.stringify(imageFiles),
+    };
+
+    const { data, error } = await supabase
+      .from("posts")
+      .insert([newPost])
+      .select();
+
+    if (error) {
+      console.error("save error:", error);
+      setError("저장 실패");
+      return;
+    }
+
+    const savedPost = {
+      ...data[0],
+      images: Array.isArray(data[0].images)
+        ? data[0].images
+        : JSON.parse(data[0].images || "[]"),
+    };
+
+    setPosts((prev) => [savedPost, ...prev]);
+    setTitle("");
+    setDate("");
+    setText("");
+    setImageFiles([]);
+    setError("");
+    setActiveView("memories");
   };
-
-  const { data, error } = await supabase
-    .from("posts")
-    .insert([newPost])
-    .select();
-
-  console.log("save result:", data, error);
-
-  if (error) {
-    console.log(error);
-    setError("저장 실패");
-    return;
-  }
-
-  const savedPost = {
-    ...data[0],
-    images: Array.isArray(data[0].images)
-      ? data[0].images
-      : JSON.parse(data[0].images || "[]"),
-  };
-
-  setPosts((prev) => [savedPost, ...prev]);
-  setTitle("");
-  setDate("");
-  setText("");
-  setImageFiles([]);
-  setError("");
-};
 
   const handleDelete = async (id) => {
+    const ok = window.confirm("이 글을 삭제할까?");
+    if (!ok) return;
+
     const { error } = await supabase.from("posts").delete().eq("id", id);
 
     if (error) {
       console.error("Failed to delete post:", error);
+      setError("삭제 실패");
       return;
     }
 
@@ -490,17 +538,27 @@ const handleAddPost = async () => {
   };
 
   const handleLogout = () => {
-  localStorage.removeItem("loggedIn");
-  setIsLoggedIn(false);
-};
+    localStorage.removeItem(SESSION_KEY);
+    setLoggedIn(false);
+  };
 
-  const handleSetPassword = () => {
+  const handleSetPassword = async () => {
     const newPassword = prompt("Enter a new password.");
-    if (newPassword && newPassword.trim()) {
-      localStorage.setItem(PASSWORD_KEY, newPassword.trim());
-      setPassword(newPassword.trim());
-      alert("Password changed.");
+    if (!newPassword || !newPassword.trim()) return;
+
+    const { error } = await supabase
+      .from("settings")
+      .update({ password: newPassword.trim() })
+      .eq("id", 1);
+
+    if (error) {
+      console.error("Failed to change password:", error);
+      alert("Password change failed.");
+      return;
     }
+
+    setPassword(newPassword.trim());
+    alert("Password changed.");
   };
 
   const openGallery = (images, index, titleText) => {
@@ -932,7 +990,8 @@ const handleAddPost = async () => {
                 >
                   Add New
                 </button>
-              </div>              
+              </div>
+
               {sortedPosts.map((post) => (
                 <div
                   key={post.id}
