@@ -177,6 +177,13 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
   }, [initialIndex]);
 
   useEffect(() => {
+  const logged = localStorage.getItem("loggedIn");
+  if (logged === "true") {
+    setIsLoggedIn(true);
+  }
+}, []);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft") {
@@ -387,15 +394,25 @@ export default function App() {
     );
   }, [sortedPosts]);
 
-  const handleLogin = () => {
-    if (loginInput === password) {
-      setLoggedIn(true);
-      localStorage.setItem(SESSION_KEY, "true");
-      setError("");
-    } else {
-      setError("Incorrect password.");
-    }
-  };
+const handleLogin = async () => {
+  const { data, error } = await supabase
+    .from("settings")
+    .select("password")
+    .eq("id", 1)
+    .single();
+
+  if (error) {
+    console.log("DB error:", error);
+    return;
+  }
+
+  if (password === data.password) {
+    setIsLoggedIn(true);
+    localStorage.setItem("loggedIn", "true");
+  } else {
+    alert("Wrong password");
+  }
+};
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files || []);
@@ -474,9 +491,9 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setLoggedIn(false);
-    localStorage.setItem(SESSION_KEY, "false");
-  };
+  localStorage.removeItem("loggedIn");
+  setIsLoggedIn(false);
+};
 
   const handleSetPassword = () => {
     const newPassword = prompt("Enter a new password.");
