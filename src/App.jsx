@@ -177,11 +177,9 @@ function GalleryModal({ images, initialIndex, title, onClose, isMobile }) {
   }, [initialIndex]);
 
   useEffect(() => {
-  const logged = localStorage.getItem("loggedIn");
-  if (logged === "true") {
-    setIsLoggedIn(true);
-  }
-}, []);
+    const session = localStorage.getItem("loggedIn") === "true";
+    setLoggedIn(session);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -401,19 +399,21 @@ const handleLogin = async () => {
     .eq("id", 1)
     .single();
 
-  console.log("DB password:", data);
+  console.log("typed:", loginInput);
+  console.log("db:", data?.password);
 
   if (error) {
-    console.log("error:", error);
+    console.log("DB error:", error);
     alert("DB error");
     return;
   }
 
-  if (password === data.password) {
-    setIsLoggedIn(true);
+  if (loginInput === data.password) {
+    setLoggedIn(true);
     localStorage.setItem("loggedIn", "true");
+    setError("");
   } else {
-    alert("Wrong password");
+    setError("Wrong password");
   }
 };
 
